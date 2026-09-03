@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose Language — LUBILUBIJBI's Servers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#150E0B; --bg-panel:#1F1512; --border:#3A241A;
+    --ember:#FF6A2B; --ember-soft:#FF8A4C;
+    --text:#F2E6DC; --text-dim:#B8A79A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Inter', sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:48px 20px;
+  }
+  .back-link{
+    align-self:flex-start; color:var(--text-dim); text-decoration:none;
+    font-family:'JetBrains Mono', monospace; font-size:13px; margin-bottom:32px;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-link:hover{color:var(--ember-soft);}
+  h1{font-family:'Rajdhani', sans-serif; font-weight:700; font-size:30px; margin-bottom:8px; text-align:center;}
+  p.sub{color:var(--text-dim); font-size:15px; margin-bottom:36px; text-align:center; max-width:400px;}
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:14px; width:100%; max-width:760px;
+  }
+  .lang-btn{
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:12px;
+    padding:22px 18px; text-decoration:none; color:var(--text);
+    font-family:'Rajdhani', sans-serif; font-weight:700; font-size:19px;
+    min-height:64px;
+    transition:border-color .15s, transform .1s;
+  }
+  .lang-btn:hover, .lang-btn:active{border-color:var(--ember); transform:translateY(-1px);}
+  .lang-btn .native{color:var(--ember-soft); margin-left:8px; font-weight:600;}
+</style>
+</head>
+<body>
+
+<a class="back-link" href="../">&larr; Back to LUBILUBIJBI's Servers</a>
+
+<h1>Choose your language</h1>
+<p class="sub">Tap a language below. It'll be remembered next time you visit.</p>
+
+<div class="grid">
+  <a class="lang-btn" href="#" data-lang="en">English</a>
+  <a class="lang-btn" href="#" data-lang="de">Deutsch</a>
+  <a class="lang-btn" href="#" data-lang="es">Español</a>
+  <a class="lang-btn" href="#" data-lang="fr">Français</a>
+  <a class="lang-btn" href="#" data-lang="it">Italiano</a>
+  <a class="lang-btn" href="#" data-lang="pt">Português</a>
+  <a class="lang-btn" href="#" data-lang="ar">العربية</a>
+  <a class="lang-btn" href="#" data-lang="bn">বাংলা</a>
+  <a class="lang-btn" href="#" data-lang="hi">हिन्दी</a>
+  <a class="lang-btn" href="#" data-lang="ru">Русский</a>
+  <a class="lang-btn" href="#" data-lang="ur">اردو</a>
+  <a class="lang-btn" href="#" data-lang="zh">简体中文</a>
+  <a class="lang-btn" href="#" data-lang="zh_tw">繁體中文</a>
+</div>
+
+<script>
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const lang = btn.dataset.lang;
+      try{ localStorage.setItem('site-lang', lang); }catch(err){}
+      window.location.href = '../';
+    });
+  });
+</script>
+
+</body>
+</html>
