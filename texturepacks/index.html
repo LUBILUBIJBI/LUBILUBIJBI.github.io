@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Texture Packs — LUBILUBIJBI's Servers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#150E0B; --bg-panel:#1F1512; --border:#3A241A;
+    --ember:#FF6A2B; --ember-soft:#FF8A4C; --crimson:#B23A2E;
+    --text:#F2E6DC; --text-dim:#B8A79A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Inter', sans-serif;
+    min-height:100vh; padding:48px 20px 60px;
+  }
+  .wrap{max-width:900px; margin:0 auto;}
+  .back-link{
+    color:var(--text-dim); text-decoration:none; font-family:'JetBrains Mono', monospace;
+    font-size:13px; display:inline-flex; align-items:center; gap:6px; margin-bottom:28px;
+  }
+  .back-link:hover{color:var(--ember-soft);}
+  h1{font-family:'Rajdhani', sans-serif; font-weight:700; font-size:32px; margin-bottom:8px;}
+  p.sub{color:var(--text-dim); font-size:15px; margin-bottom:10px; max-width:520px;}
+  .creator-link{
+    display:inline-flex; align-items:center; gap:8px; margin-bottom:36px;
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--ember-soft);
+    text-decoration:none; border:1px solid var(--border); border-radius:999px; padding:8px 16px;
+  }
+  .creator-link:hover{border-color:var(--ember);}
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:20px;
+  }
+  .pack-card{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:10px;
+    overflow:hidden; transition:border-color .15s, transform .15s;
+  }
+  .pack-card:hover{border-color:var(--ember); transform:translateY(-2px);}
+  .banner{width:100%; aspect-ratio:1/1; object-fit:cover; display:block; border-bottom:1px solid var(--border);}
+  .banner-placeholder{
+    width:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;
+    border-bottom:1px solid var(--border);
+    background:
+      linear-gradient(135deg, #8B1E1E 25%, transparent 25%) -20px 0/40px 40px,
+      linear-gradient(225deg, #8B1E1E 25%, transparent 25%) -20px 0/40px 40px,
+      linear-gradient(315deg, #8B1E1E 25%, transparent 25%) 0 0/40px 40px,
+      linear-gradient(45deg, #8B1E1E 25%, #C43C2E 25%) 0 0/40px 40px;
+  }
+  .banner-placeholder span{
+    font-family:'Rajdhani', sans-serif; font-weight:700; font-size:22px; color:#fff;
+    background:rgba(0,0,0,.45); padding:8px 16px; border-radius:8px;
+  }
+  .card-body{padding:20px;}
+  .card-body h3{font-family:'Rajdhani', sans-serif; font-size:22px; margin-bottom:6px;}
+  .card-body .desc{color:var(--text-dim); font-size:14px; margin-bottom:16px;}
+  .dl-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px 14px;
+  }
+  .dl-row a{
+    color:var(--text); text-decoration:none; font-family:'JetBrains Mono', monospace; font-size:14px;
+  }
+  .dl-row a:hover{color:var(--ember-soft); text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <a class="back-link" href="../">&larr; Back to LUBILUBIJBI's Servers</a>
+
+  <h1>Texture Packs</h1>
+  <p class="sub">All official texture packs made by LUBILUBIJBI, hosted on Modrinth.</p>
+  <a class="creator-link" href="https://modrinth.com/user/lubijbi39" target="_blank" rel="noopener">
+    👤 View creator profile on Modrinth
+  </a>
+
+  <div class="grid">
+
+    <div class="pack-card">
+      <img class="banner" src="data:image/jpeg;base64,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" alt="LUBEX Texture Pack">
+      <div class="card-body">
+        <h3>LUBEX</h3>
+        <div class="desc">The official texture pack for LUBILUBIJBI's Servers.</div>
+        <div class="dl-row">
+          <a href="https://modrinth.com/resourcepack/lubex" target="_blank" rel="noopener">Click to download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pack-card">
+      <div class="banner-placeholder"><span>Bedwars Lubi</span></div>
+      <div class="card-body">
+        <h3>Bedwars Lubi</h3>
+        <div class="desc">A texture pack made for Bedwars, by LUBILUBIJBI.</div>
+        <div class="dl-row">
+          <a href="https://modrinth.com/resourcepack/bedwars-lubi" target="_blank" rel="noopener">Click to download</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
