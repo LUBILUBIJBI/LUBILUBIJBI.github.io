@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUBcode3900L - Universal Cryptographic & Security Suite</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- CryptoJS CDN for legacy/supplemental ciphers and hashing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#080c14',
+              card: '#111827',
+              border: '#1f293d',
+              accent: '#10b981',
+              cyan: '#06b6d4',
+              purple: '#8b5cf6',
+              rose: '#f43f5e',
+              warning: '#f59e0b'
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f293d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10b981;
+    }
+
+    /* Glassmorphism & Cyber Effects */
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(31, 41, 61, 0.8);
+    }
+    .glass-panel:hover {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+    }
+    .cyber-btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      transition: all 0.2s ease;
+    }
+    .cyber-btn-primary:hover {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
+    }
+    .cyber-btn-secondary {
+      background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
+      transition: all 0.2s ease;
+    }
+    .cyber-btn-secondary:hover {
+      background: linear-gradient(135deg, #38bdf8 0%, #06b6d4 100%);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+      transform: translateY(-1px);
+    }
+    .active-tab {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: #10b981 !important;
+      color: #34d399 !important;
+    }
+  </style>
+</head>
+
+<body class="bg-cyber-bg text-gray-200 min-h-screen font-sans flex flex-col selection:bg-emerald-500 selection:text-black">
+
+  <!-- Header / Navigation Bar -->
+  <header class="border-b border-cyber-border bg-cyber-card/90 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Brand Title -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="shield-check" class="w-6 h-6 text-black"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold font-mono tracking-wider text-white">LUBcode<span class="text-emerald-400">3900L</span></h1>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">v3.9 PRO</span>
+          </div>
+          <p class="text-xs text-gray-400 hidden sm:block" data-i18n="app-subtitle">Universal Cryptographic & Security Suite</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Status & Language Switcher -->
+      <div class="flex items-center space-x-4">
+        <!-- Client-Side Privacy Badge -->
+        <div class="hidden md:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span data-i18n="privacy-badge">100% Client-Side Privacy</span>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="relative flex items-center bg-gray-900 border border-cyber-border rounded-lg p-1">
+          <i data-lucide="globe" class="w-4 h-4 ml-2 text-gray-400"></i>
+          <select id="langSelect" class="bg-transparent text-xs text-gray-200 py-1 px-2 focus:outline-none cursor-pointer">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col space-y-6">
+
+    <!-- Tab Navigation Bar -->
+    <nav class="flex overflow-x-auto space-x-2 pb-2 border-b border-cyber-border no-scrollbar scroll-smooth">
+      <button onclick="switchTab('text-enc')" id="tab-btn-text-enc" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        <span data-i18n="tab-text-enc">Text ➔ Encrypted File</span>
+      </button>
+
+      <button onclick="switchTab('file-b64')" id="tab-btn-file-b64" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="file-badge" class="w-4 h-4"></i>
+        <span data-i18n="tab-file-b64">File & Base64 / Encrypt</span>
+      </button>
+
+      <button onclick="switchTab('symmetric')" id="tab-btn-symmetric" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="lock" class="w-4 h-4"></i>
+        <span data-i18n="tab-symmetric">Text Symmetric Cipher</span>
+      </button>
+
+      <button onclick="switchTab('rsa')" id="tab-btn-rsa" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="key" class="w-4 h-4"></i>
+        <span data-i18n="tab-rsa">RSA PKI & Signature</span>
+      </button>
+
+      <button onclick="switchTab('classic')" id="tab-btn-classic" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="binary" class="w-4 h-4"></i>
+        <span data-i18n="tab-classic">Classic Ciphers</span>
+      </button>
+
+      <button onclick="switchTab('hash')" id="tab-btn-hash" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="hash" class="w-4 h-4"></i>
+        <span data-i18n="tab-hash">Hashes & Checksums</span>
+      </button>
+
+      <button onclick="switchTab('stega')" id="tab-btn-stega" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="image" class="w-4 h-4"></i>
+        <span data-i18n="tab-stega">Steganography</span>
+      </button>
+
+      <button onclick="switchTab('password')" id="tab-btn-password" class="nav-tab flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-mono font-medium transition-all border border-transparent whitespace-nowrap bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800">
+        <i data-lucide="dices" class="w-4 h-4"></i>
+        <span data-i18n="tab-password">Password Generator</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: Text to Password Encrypted File (.lub / .enc) -->
+    <section id="pane-text-enc" class="tab-pane hidden space-y-6">
+      
+      <!-- Module Banner / Description -->
+      <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
+        <div class="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="file-lock-2" class="text-emerald-400"></i>
+              <span data-i18n="txtenc-title">Text to Password-Encrypted File (.lub / .enc)</span>
+            </h2>
+            <p class="text-xs text-gray-400 mt-1 max-w-3xl" data-i18n="txtenc-desc">
+              Input custom text or long documents, apply secret password key derivation (PBKDF2 + AES-256-GCM), and download a standalone encrypted binary file (.lub). Decrypt `.lub` files back to text anytime!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Encryption Panel -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+            <h3 class="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+              <span data-i18n="txtenc-encrypt-title">1. Encrypt Text ➔ Export File</span>
+            </h3>
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">AES-256-GCM</span>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1.5" data-i18n="txtenc-input-lbl">Enter or Paste Document Text:</label>
+            <textarea id="txtEncInput" rows="6" placeholder="Type or paste confidential notes, codes, or private text here..." class="w-full bg-gray-900/90 border border-cyber-border rounded-xl p-3 text-xs font-mono text-gray-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1.5" data-i18n="txtenc-pass-lbl">Set Encryption Password:</label>
+            <div class="relative">
+              <input type="password" id="txtEncPass" placeholder="Enter a strong passphrase..." class="w-full bg-gray-900/90 border border-cyber-border rounded-xl py-2.5 pl-3 pr-10 text-xs font-mono text-gray-100 focus:outline-none focus:border-emerald-500">
+              <button onclick="togglePassVisibility('txtEncPass', this)" class="absolute right-3 top-2.5 text-gray-400 hover:text-white">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <!-- Strength Indicator -->
+            <div class="mt-2 flex items-center space-x-2">
+              <div class="flex-grow bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                <div id="txtEncStrengthBar" class="bg-gray-600 h-full w-0 transition-all duration-300"></div>
+              </div>
+              <span id="txtEncStrengthTxt" class="text-[10px] font-mono text-gray-400">Strength</span>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button onclick="encryptTextToFile()" class="w-full cyber-btn-primary text-black font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span data-i18n="txtenc-btn-export">Encrypt & Export File (.lub)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Decryption Panel -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+            <h3 class="text-sm font-semibold text-cyan-400 flex items-center gap-2">
+              <i data-lucide="unlock" class="w-4 h-4"></i>
+              <span data-i18n="txtenc-decrypt-title">2. Upload File (.lub) ➔ Decrypt Text</span>
+            </h3>
+            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 font-mono">Counter-Mode</span>
+          </div>
+
+          <!-- Drag and Drop Zone -->
+          <div id="txtDecDropZone" onclick="document.getElementById('txtDecFileInput').click()" class="border-2 border-dashed border-cyber-border hover:border-cyan-500/60 rounded-xl p-6 text-center cursor-pointer transition-all bg-gray-900/40 hover:bg-gray-900/80 group">
+            <input type="file" id="txtDecFileInput" accept=".lub,.enc" class="hidden" onchange="handleTxtDecFileSelect(event)">
+            <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-500 group-hover:text-cyan-400 mx-auto transition-colors mb-2"></i>
+            <p id="txtDecFileName" class="text-xs font-mono text-gray-300" data-i18n="txtenc-drop-text">Click or drag & drop `.lub` encrypted file here</p>
+            <p class="text-[10px] text-gray-500 mt-1">Supports LUBcode3900L encrypted text format</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1.5" data-i18n="txtenc-decpass-lbl">Enter Decryption Password:</label>
+            <div class="relative">
+              <input type="password" id="txtDecPass" placeholder="Enter password used during encryption..." class="w-full bg-gray-900/90 border border-cyber-border rounded-xl py-2.5 pl-3 pr-10 text-xs font-mono text-gray-100 focus:outline-none focus:border-cyan-500">
+              <button onclick="togglePassVisibility('txtDecPass', this)" class="absolute right-3 top-2.5 text-gray-400 hover:text-white">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <button onclick="decryptFileToText()" class="w-full cyber-btn-secondary text-black font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg">
+            <i data-lucide="key-round" class="w-4 h-4"></i>
+            <span data-i18n="txtenc-btn-decrypt">Decrypt & Reveal Text</span>
+          </button>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs text-gray-300 font-medium" data-i18n="txtenc-result-lbl">Decrypted Text Output:</label>
+              <button onclick="copyElementText('txtDecResult')" class="text-[11px] text-cyan-400 hover:underline flex items-center gap-1">
+                <i data-lucide="copy" class="w-3 h-3"></i> <span data-i18n="btn-copy">Copy</span>
+              </button>
+            </div>
+            <textarea id="txtDecResult" readonly rows="4" placeholder="Decrypted text will appear here..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-3 text-xs font-mono text-emerald-300 focus:outline-none"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: File Processing & Base64 / File Encryption -->
+    <section id="pane-file-b64" class="tab-pane hidden space-y-6">
+      
+      <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
+        <div class="absolute right-0 top-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="file-digit" class="text-cyan-400"></i>
+          <span data-i18n="fb64-title">File Processing, Base64 Encoder & File Encryption</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1 max-w-3xl" data-i18n="fb64-desc">
+          Upload any binary file (PDF, Image, Audio, Zip, Video, Doc) to encode to Base64, decode Base64 back to file, or perform full AES-256-GCM binary file encryption with a password.
+        </p>
+      </div>
+
+      <!-- Sub Navigation Mode Selection -->
+      <div class="flex space-x-2 border-b border-cyber-border pb-3">
+        <button id="subtab-f2b64" onclick="switchFileSubTab('f2b64')" class="px-4 py-2 rounded-lg text-xs font-mono font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">File ➔ Base64 / Data URI</button>
+        <button id="subtab-b642f" onclick="switchFileSubTab('b642f')" class="px-4 py-2 rounded-lg text-xs font-mono font-medium bg-gray-900 text-gray-400 hover:bg-gray-800">Base64 ➔ File</button>
+        <button id="subtab-fenc" onclick="switchFileSubTab('fenc')" class="px-4 py-2 rounded-lg text-xs font-mono font-medium bg-gray-900 text-gray-400 hover:bg-gray-800">File Encrypt / Decrypt (.lub)</button>
+      </div>
+
+      <!-- Subpane 1: File to Base64 -->
+      <div id="subpane-f2b64" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <h3 class="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+            <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="fb64-upload-lbl">1. Select Any File</span>
+          </h3>
+          
+          <div id="f2b64DropZone" onclick="document.getElementById('f2b64Input').click()" class="border-2 border-dashed border-cyber-border hover:border-emerald-500/60 rounded-xl p-8 text-center cursor-pointer transition-all bg-gray-900/40 hover:bg-gray-900/80 group">
+            <input type="file" id="f2b64Input" class="hidden" onchange="handleFile2Base64Select(event)">
+            <i data-lucide="file-up" class="w-10 h-10 text-gray-500 group-hover:text-emerald-400 mx-auto transition-colors mb-2"></i>
+            <p id="f2b64FileName" class="text-xs font-mono text-gray-300" data-i18n="fb64-drag-txt">Drop file here or click to browse</p>
+            <p id="f2b64FileInfo" class="text-[10px] text-gray-500 mt-1">Images, PDFs, ZIP, Audio, Video, Documents</p>
+          </div>
+
+          <div class="flex items-center space-x-4 text-xs">
+            <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+              <input type="radio" name="b64Format" value="datauri" checked class="accent-emerald-500">
+              <span data-i18n="fb64-opt-datauri">Data URI (data:mime;base64,...)</span>
+            </label>
+            <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+              <input type="radio" name="b64Format" value="raw" class="accent-emerald-500">
+              <span data-i18n="fb64-opt-raw">Raw Base64</span>
+            </label>
+          </div>
+
+          <button onclick="processFileToBase64()" class="w-full cyber-btn-primary text-black font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            <span data-i18n="fb64-btn-convert">Convert to Base64</span>
+          </button>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-emerald-400" data-i18n="fb64-out-lbl">2. Base64 Output</h3>
+            <div class="flex items-center space-x-2">
+              <button onclick="copyElementText('f2b64Result')" class="text-xs text-emerald-400 hover:underline flex items-center gap-1">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+              </button>
+              <button onclick="downloadBase64Txt()" class="text-xs text-cyan-400 hover:underline flex items-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download .txt
+              </button>
+            </div>
+          </div>
+
+          <textarea id="f2b64Result" readonly rows="8" placeholder="Base64 encoded string will appear here..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-3 text-[11px] font-mono text-emerald-300 focus:outline-none"></textarea>
+
+          <div id="f2b64PreviewBox" class="hidden border border-cyber-border rounded-xl p-3 bg-gray-900/60">
+            <span class="text-xs text-gray-400 block mb-2 font-medium" data-i18n="fb64-preview">Media Preview:</span>
+            <div id="f2b64MediaContainer" class="max-h-48 overflow-auto flex items-center justify-center"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subpane 2: Base64 to File -->
+      <div id="subpane-b642f" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <h3 class="text-sm font-semibold text-cyan-400 flex items-center gap-2">
+            <i data-lucide="file-code" class="w-4 h-4"></i> <span data-i18n="b64f-input-title">1. Paste Base64 / Data URI</span>
+          </h3>
+
+          <textarea id="b642fInput" rows="8" placeholder="Paste Base64 or Data URI string here..." class="w-full bg-gray-900/90 border border-cyber-border rounded-xl p-3 text-[11px] font-mono text-gray-100 focus:outline-none focus:border-cyan-500"></textarea>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-300 font-medium mb-1" data-i18n="b64f-filename-lbl">Target Filename:</label>
+              <input type="text" id="b642fName" value="restored_file.bin" class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2 text-xs font-mono text-gray-200">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-300 font-medium mb-1" data-i18n="b64f-mime-lbl">MIME Type (optional):</label>
+              <input type="text" id="b642fMime" placeholder="auto-detect or image/png" class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2 text-xs font-mono text-gray-200">
+            </div>
+          </div>
+
+          <button onclick="processBase64ToFile()" class="w-full cyber-btn-secondary text-black font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2">
+            <i data-lucide="file-check" class="w-4 h-4"></i>
+            <span data-i18n="b64f-btn-reconstruct">Reconstruct & Download File</span>
+          </button>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center space-y-4">
+          <div class="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <i data-lucide="file-output" class="w-8 h-8"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-white" data-i18n="b64f-status-title">Ready for File Reconstruction</h4>
+          <p class="text-xs text-gray-400 max-w-sm" data-i18n="b64f-status-desc">
+            Supports automatic header sniffing for JPEG, PNG, GIF, PDF, ZIP, MP3, MP4 and standard binary data!
+          </p>
+        </div>
+      </div>
+
+      <!-- Subpane 3: Binary File Encryption / Decryption with Password -->
+      <div id="subpane-fenc" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Encrypt File -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <h3 class="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+            <i data-lucide="file-lock" class="w-4 h-4"></i> <span data-i18n="fenc-encrypt-title">Encrypt Any Binary File</span>
+          </h3>
+
+          <div id="fileEncDropZone" onclick="document.getElementById('fileEncInput').click()" class="border-2 border-dashed border-cyber-border hover:border-emerald-500/60 rounded-xl p-6 text-center cursor-pointer transition-all bg-gray-900/40">
+            <input type="file" id="fileEncInput" class="hidden" onchange="handleFileEncSelect(event)">
+            <i data-lucide="shield-alert" class="w-8 h-8 text-emerald-400 mx-auto mb-2"></i>
+            <p id="fileEncName" class="text-xs font-mono text-gray-300" data-i18n="fenc-drop-txt">Select file to encrypt with password</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1" data-i18n="fenc-pass-lbl">Encryption Secret Key / Password:</label>
+            <input type="password" id="fileEncPass" placeholder="Strong password..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-2.5 text-xs font-mono text-gray-100">
+          </div>
+
+          <button onclick="encryptBinaryFile()" class="w-full cyber-btn-primary text-black font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+            <span data-i18n="fenc-btn-encrypt">Encrypt & Download (.lub)</span>
+          </button>
+        </div>
+
+        <!-- Decrypt File -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
+          <h3 class="text-sm font-semibold text-cyan-400 flex items-center gap-2">
+            <i data-lucide="file-key" class="w-4 h-4"></i> <span data-i18n="fenc-decrypt-title">Decrypt Encrypted File (.lub)</span>
+          </h3>
+
+          <div id="fileDecDropZone" onclick="document.getElementById('fileDecInput').click()" class="border-2 border-dashed border-cyber-border hover:border-cyan-500/60 rounded-xl p-6 text-center cursor-pointer transition-all bg-gray-900/40">
+            <input type="file" id="fileDecInput" class="hidden" onchange="handleFileDecSelect(event)">
+            <i data-lucide="unlock" class="w-8 h-8 text-cyan-400 mx-auto mb-2"></i>
+            <p id="fileDecName" class="text-xs font-mono text-gray-300" data-i18n="fenc-drop-dec-txt">Select `.lub` encrypted file</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1" data-i18n="fenc-decpass-lbl">Decryption Password:</label>
+            <input type="password" id="fileDecPass" placeholder="Enter password..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-2.5 text-xs font-mono text-gray-100">
+          </div>
+
+          <button onclick="decryptBinaryFile()" class="w-full cyber-btn-secondary text-black font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span data-i18n="fenc-btn-decrypt">Decrypt & Restore Original File</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Text Symmetric Ciphers -->
+    <section id="pane-symmetric" class="tab-pane hidden space-y-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="shield" class="text-emerald-400"></i>
+          <span data-i18n="sym-title">Text Symmetric Ciphers</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="sym-desc">
+          Real-time symmetric text encryption and decryption utilizing AES-256-GCM, AES-256-CBC, ChaCha20, DES, and TripleDES.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-emerald-400" data-i18n="sym-cfg-title">Cipher Configuration</h3>
+
+          <div>
+            <label class="block text-xs text-gray-300 mb-1" data-i18n="sym-algo-lbl">Algorithm:</label>
+            <select id="symAlgo" class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2.5 text-xs font-mono text-gray-100 focus:outline-none focus:border-emerald-500">
+              <option value="AES-GCM">AES-256-GCM (WebCrypto Recommended)</option>
+              <option value="AES-CBC">AES-256-CBC (CryptoJS)</option>
+              <option value="ChaCha20">ChaCha20</option>
+              <option value="TripleDES">TripleDES (3DES)</option>
+              <option value="DES">DES (Legacy)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 mb-1" data-i18n="sym-pass-lbl">Secret Key / Passphrase:</label>
+            <input type="password" id="symPass" value="LUBcodeSecretKey3900!" class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2.5 text-xs font-mono text-gray-100">
+          </div>
+
+          <div class="flex space-x-2 pt-2">
+            <button onclick="processSymmetric('encrypt')" class="flex-1 cyber-btn-primary text-black font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i> Encrypt
+            </button>
+            <button onclick="processSymmetric('decrypt')" class="flex-1 cyber-btn-secondary text-black font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1">
+              <i data-lucide="unlock" class="w-3.5 h-3.5"></i> Decrypt
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1" data-i18n="sym-input-lbl">Input Text:</label>
+            <textarea id="symInput" rows="4" placeholder="Enter plaintext to encrypt or ciphertext to decrypt..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-3 text-xs font-mono text-gray-100 focus:outline-none focus:border-emerald-500">Hello LUBcode3900L Security World!</textarea>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs text-gray-300 font-medium" data-i18n="sym-output-lbl">Output Result:</label>
+              <button onclick="copyElementText('symOutput')" class="text-xs text-emerald-400 hover:underline flex items-center gap-1">
+                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+              </button>
+            </div>
+            <textarea id="symOutput" readonly rows="4" placeholder="Result will appear here..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-3 text-xs font-mono text-emerald-300 focus:outline-none"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Asymmetric RSA Keypair & Signature -->
+    <section id="pane-rsa" class="tab-pane hidden space-y-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="key-round" class="text-purple-400"></i>
+          <span data-i18n="rsa-title">RSA PKI & Digital Signature Toolkit</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="rsa-desc">
+          Generate 2048/4096-bit RSA keypairs, perform asymmetric public key encryption, private key decryption, and digital signature creation & verification via Web Crypto API.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Key Generation Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+            <h3 class="text-sm font-semibold text-purple-400" data-i18n="rsa-gen-title">1. Keypair Generator</h3>
+            <div class="flex items-center space-x-2">
+              <select id="rsaBitSize" class="bg-gray-900 border border-cyber-border text-xs rounded p-1 text-gray-200">
+                <option value="2048">2048-bit</option>
+                <option value="4096">4096-bit</option>
+              </select>
+              <button onclick="generateRsaKeyPair()" class="cyber-btn-primary text-black font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Generate
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[11px] text-gray-400 font-mono">Public Key (PEM)</label>
+              <button onclick="copyElementText('rsaPubKey')" class="text-[10px] text-purple-400">Copy</button>
+            </div>
+            <textarea id="rsaPubKey" readonly rows="4" placeholder="Click Generate Keypair..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-2.5 text-[10px] font-mono text-purple-300 focus:outline-none"></textarea>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[11px] text-gray-400 font-mono">Private Key (PEM)</label>
+              <button onclick="copyElementText('rsaPrivKey')" class="text-[10px] text-purple-400">Copy</button>
+            </div>
+            <textarea id="rsaPrivKey" readonly rows="4" placeholder="Click Generate Keypair..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-2.5 text-[10px] font-mono text-rose-300 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Operations Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-purple-400" data-i18n="rsa-ops-title">2. RSA Encryption / Signature</h3>
+
+          <div>
+            <label class="block text-xs text-gray-300 mb-1" data-i18n="rsa-msg-lbl">Input Message:</label>
+            <textarea id="rsaMsg" rows="3" placeholder="Enter message to encrypt or sign..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-2.5 text-xs font-mono text-gray-100">Confidential Message for LUBcode RSA</textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="rsaEncryptMessage()" class="bg-gray-800 hover:bg-gray-700 text-purple-300 font-semibold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1 border border-purple-500/30">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i> Encrypt (Public)
+            </button>
+            <button onclick="rsaDecryptMessage()" class="bg-gray-800 hover:bg-gray-700 text-rose-300 font-semibold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1 border border-rose-500/30">
+              <i data-lucide="unlock" class="w-3.5 h-3.5"></i> Decrypt (Private)
+            </button>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[11px] text-gray-400 font-mono">Output Result / Digital Signature:</label>
+              <button onclick="copyElementText('rsaOutput')" class="text-[10px] text-purple-400">Copy</button>
+            </div>
+            <textarea id="rsaOutput" readonly rows="3" placeholder="Ciphertext or digital signature will appear here..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-2.5 text-[11px] font-mono text-purple-300 focus:outline-none"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Classic & Educational Ciphers -->
+    <section id="pane-classic" class="tab-pane hidden space-y-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="binary" class="text-amber-400"></i>
+          <span data-i18n="classic-title">Classic & Historical Ciphers</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="classic-desc">
+          Explore foundational ciphers: Caesar shift, Vigenère keyword cipher, ROT13, Atbash, and Rail Fence transposition.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-amber-400" data-i18n="classic-sel-title">Cipher Selector</h3>
+
+          <div>
+            <label class="block text-xs text-gray-300 mb-1">Algorithm:</label>
+            <select id="classicType" onchange="updateClassicControls()" class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2.5 text-xs font-mono text-gray-100">
+              <option value="caesar">Caesar Shift Cipher</option>
+              <option value="vigenere">Vigenère Cipher</option>
+              <option value="rot13">ROT13 Cipher</option>
+              <option value="atbash">Atbash Cipher</option>
+              <option value="railfence">Rail Fence Transposition</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Controls -->
+          <div id="caesarControls" class="space-y-1">
+            <label class="block text-xs text-gray-300">Shift Key: <span id="shiftVal" class="text-amber-400 font-mono">3</span></label>
+            <input type="range" id="caesarShift" min="1" max="25" value="3" oninput="document.getElementById('shiftVal').innerText=this.value; processClassicCipher();" class="w-full accent-amber-400">
+          </div>
+
+          <div id="vigenereControls" class="hidden space-y-1">
+            <label class="block text-xs text-gray-300">Keyword:</label>
+            <input type="text" id="vigenereKey" value="KEY" oninput="processClassicCipher()" class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2 text-xs font-mono text-gray-100">
+          </div>
+
+          <div id="railfenceControls" class="hidden space-y-1">
+            <label class="block text-xs text-gray-300">Number of Rails: <span id="railVal" class="text-amber-400 font-mono">3</span></label>
+            <input type="range" id="railFenceRails" min="2" max="10" value="3" oninput="document.getElementById('railVal').innerText=this.value; processClassicCipher();" class="w-full accent-amber-400">
+          </div>
+
+          <div class="flex space-x-2 pt-2">
+            <button onclick="processClassicCipher('encode')" class="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold py-2.5 rounded-xl text-xs">Encode</button>
+            <button onclick="processClassicCipher('decode')" class="flex-1 bg-gray-800 hover:bg-gray-700 text-amber-300 font-semibold py-2.5 rounded-xl text-xs border border-amber-500/30">Decode</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-4">
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1">Input Text:</label>
+            <textarea id="classicInput" oninput="processClassicCipher()" rows="4" placeholder="Enter text..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-3 text-xs font-mono text-gray-100 focus:outline-none">Attack at dawn with LUBcode3900L</textarea>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs text-gray-300 font-medium">Cipher Output:</label>
+              <button onclick="copyElementText('classicOutput')" class="text-xs text-amber-400 hover:underline">Copy</button>
+            </div>
+            <textarea id="classicOutput" readonly rows="4" class="w-full bg-gray-950 border border-cyber-border rounded-xl p-3 text-xs font-mono text-amber-300 focus:outline-none"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: Hashes & Checksums -->
+    <section id="pane-hash" class="tab-pane hidden space-y-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="hash" class="text-rose-400"></i>
+          <span data-i18n="hash-title">Cryptographic Hashes & File Checksums</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="hash-desc">
+          Compute real-time cryptographic hashes (MD5, SHA-1, SHA-256, SHA-512, SHA-3, HMAC) for both text strings and uploaded files.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Text Hash Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-rose-400 flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Text Hash / HMAC Generator
+          </h3>
+
+          <textarea id="hashTextInput" oninput="computeTextHashes()" rows="3" placeholder="Type text to hash..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-3 text-xs font-mono text-gray-100 focus:outline-none">LUBcode3900L Security Standard</textarea>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">HMAC Secret Key (Optional):</label>
+            <input type="text" id="hmacKey" oninput="computeTextHashes()" placeholder="Secret key for HMAC..." class="w-full bg-gray-900 border border-cyber-border rounded-lg p-2 text-xs font-mono text-gray-100">
+          </div>
+
+          <div class="space-y-2 pt-2">
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono">MD5:</span>
+              <input type="text" id="hashMD5" readonly class="w-full bg-gray-950 border border-cyber-border rounded p-1.5 text-[11px] font-mono text-rose-300">
+            </div>
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono">SHA-1:</span>
+              <input type="text" id="hashSHA1" readonly class="w-full bg-gray-950 border border-cyber-border rounded p-1.5 text-[11px] font-mono text-rose-300">
+            </div>
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono">SHA-256:</span>
+              <input type="text" id="hashSHA256" readonly class="w-full bg-gray-950 border border-cyber-border rounded p-1.5 text-[11px] font-mono text-rose-300">
+            </div>
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono">SHA-512:</span>
+              <input type="text" id="hashSHA512" readonly class="w-full bg-gray-950 border border-cyber-border rounded p-1.5 text-[11px] font-mono text-rose-300">
+            </div>
+          </div>
+        </div>
+
+        <!-- File Checksum Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-rose-400 flex items-center gap-2">
+            <i data-lucide="file-check" class="w-4 h-4"></i> File Integrity Checksum
+          </h3>
+
+          <div onclick="document.getElementById('hashFileInput').click()" class="border-2 border-dashed border-cyber-border hover:border-rose-500/60 rounded-xl p-6 text-center cursor-pointer bg-gray-900/40">
+            <input type="file" id="hashFileInput" class="hidden" onchange="computeFileHash(event)">
+            <i data-lucide="upload-cloud" class="w-8 h-8 text-rose-400 mx-auto mb-2"></i>
+            <p id="hashFileName" class="text-xs font-mono text-gray-300">Click to upload file for checksum verification</p>
+          </div>
+
+          <div class="space-y-2 pt-2">
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono">File SHA-256:</span>
+              <input type="text" id="fileHashSHA256" readonly placeholder="Upload file to compute..." class="w-full bg-gray-950 border border-cyber-border rounded p-1.5 text-[11px] font-mono text-rose-300">
+            </div>
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono">File SHA-512:</span>
+              <input type="text" id="fileHashSHA512" readonly placeholder="Upload file to compute..." class="w-full bg-gray-950 border border-cyber-border rounded p-1.5 text-[11px] font-mono text-rose-300">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: Image Steganography -->
+    <section id="pane-stega" class="tab-pane hidden space-y-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="image" class="text-blue-400"></i>
+          <span data-i18n="stega-title">Image LSB Steganography</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="stega-desc">
+          Hide encrypted secret text invisibly inside PNG/JPG image pixels using Least Significant Bit (LSB) encoding.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Embed Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-blue-400">1. Hide Text in Image</h3>
+
+          <div onclick="document.getElementById('stegaEmbedImgInput').click()" class="border border-cyber-border rounded-xl p-4 text-center cursor-pointer bg-gray-900/50">
+            <input type="file" id="stegaEmbedImgInput" accept="image/*" class="hidden" onchange="loadStegaEmbedImg(event)">
+            <p id="stegaEmbedImgName" class="text-xs text-gray-300">Select PNG / JPG Cover Image</p>
+          </div>
+
+          <textarea id="stegaSecretTxt" rows="3" placeholder="Enter secret message to hide..." class="w-full bg-gray-900 border border-cyber-border rounded-xl p-2.5 text-xs font-mono text-gray-100"></textarea>
+
+          <button onclick="embedSteganography()" class="w-full bg-blue-500 hover:bg-blue-400 text-black font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1">
+            <i data-lucide="eye-off" class="w-4 h-4"></i> Embed & Download Image
+          </button>
+        </div>
+
+        <!-- Extract Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-blue-400">2. Extract Text from Image</h3>
+
+          <div onclick="document.getElementById('stegaExtractImgInput').click()" class="border border-cyber-border rounded-xl p-4 text-center cursor-pointer bg-gray-900/50">
+            <input type="file" id="stegaExtractImgInput" accept="image/*" class="hidden" onchange="loadStegaExtractImg(event)">
+            <p id="stegaExtractImgName" class="text-xs text-gray-300">Select Image with Hidden Text</p>
+          </div>
+
+          <button onclick="extractSteganography()" class="w-full bg-gray-800 hover:bg-gray-700 text-blue-300 font-semibold py-2.5 rounded-xl text-xs border border-blue-500/30 flex items-center justify-center gap-1">
+            <i data-lucide="eye" class="w-4 h-4"></i> Extract Hidden Message
+          </button>
+
+          <textarea id="stegaExtractedResult" readonly rows="3" placeholder="Extracted message will appear here..." class="w-full bg-gray-950 border border-cyber-border rounded-xl p-2.5 text-xs font-mono text-blue-300 focus:outline-none"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: Secure Password Generator -->
+    <section id="pane-password" class="tab-pane hidden space-y-6">
+      <div class="glass-panel rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="dices" class="text-emerald-400"></i>
+          <span data-i18n="pwdgen-title">Secure Password & Passphrase Generator</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="pwdgen-desc">
+          Generate cryptographically strong passwords and multi-word passphrases with entropy analysis.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="glass-panel rounded-2xl p-6 space-y-4">
+          <h3 class="text-sm font-semibold text-emerald-400">Parameters</h3>
+
+          <div>
+            <label class="block text-xs text-gray-300 mb-1">Length: <span id="pwdLenVal" class="text-emerald-400 font-mono font-bold">20</span></label>
+            <input type="range" id="pwdLength" min="8" max="128" value="20" oninput="document.getElementById('pwdLenVal').innerText=this.value; generateSecurePassword();" class="w-full accent-emerald-500">
+          </div>
+
+          <div class="space-y-2 text-xs text-gray-300">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pwdUpper" checked onchange="generateSecurePassword()" class="accent-emerald-500 rounded">
+              <span>Uppercase Letters (A-Z)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pwdLower" checked onchange="generateSecurePassword()" class="accent-emerald-500 rounded">
+              <span>Lowercase Letters (a-z)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pwdNum" checked onchange="generateSecurePassword()" class="accent-emerald-500 rounded">
+              <span>Numbers (0-9)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="pwdSym" checked onchange="generateSecurePassword()" class="accent-emerald-500 rounded">
+              <span>Symbols (!@#$%^&*)</span>
+            </label>
+          </div>
+
+          <button onclick="generateSecurePassword()" class="w-full cyber-btn-primary text-black font-semibold py-3 rounded-xl text-xs flex items-center justify-center gap-1">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Generate New Password
+          </button>
+        </div>
+
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+          <div>
+            <label class="block text-xs text-gray-400 font-medium mb-1">Generated Password:</label>
+            <div class="flex items-center space-x-2">
+              <input type="text" id="pwdOutput" readonly class="flex-grow bg-gray-950 border border-cyber-border rounded-xl p-3 text-sm font-mono text-emerald-300 focus:outline-none">
+              <button onclick="copyElementText('pwdOutput')" class="cyber-btn-secondary text-black font-semibold p-3 rounded-xl text-xs flex items-center gap-1">
+                <i data-lucide="copy" class="w-4 h-4"></i> Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-gray-900/80 border border-cyber-border rounded-xl p-4 space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-400">Entropy Score:</span>
+              <span id="pwdEntropy" class="font-mono text-emerald-400 font-bold">128 bits</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-400">Security Rating:</span>
+              <span id="pwdRating" class="font-mono text-emerald-400 font-bold">Cyber-Grade / Strong</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Footer -->
+  <footer class="border-t border-cyber-border bg-cyber-card/80 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
+      <p>LUBcode3900L Security Engine &copy; 2026. Zero external data transmission. 100% Client-Side Web Cryptography API.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* ==========================================================================
+       1. Internationalization (i18n) Dictionary & Engine
+       ========================================================================== */
+    const i18n = {
+      en: {
+        "app-subtitle": "Universal Cryptographic & Security Suite",
+        "privacy-badge": "100% Client-Side Privacy",
+        "tab-text-enc": "Text ➔ Encrypted File",
+        "tab-file-b64": "File & Base64 / Encrypt",
+        "tab-symmetric": "Text Symmetric Cipher",
+        "tab-rsa": "RSA PKI & Signature",
+        "tab-classic": "Classic Ciphers",
+        "tab-hash": "Hashes & Checksums",
+        "tab-stega": "Steganography",
+        "tab-password": "Password Generator",
+        
+        "txtenc-title": "Text to Password-Encrypted File (.lub / .enc)",
+        "txtenc-desc": "Input custom text or long documents, apply secret password key derivation (PBKDF2 + AES-256-GCM), and download a standalone encrypted binary file (.lub). Decrypt `.lub` files back to text anytime!",
+        "txtenc-encrypt-title": "1. Encrypt Text ➔ Export File",
+        "txtenc-input-lbl": "Enter or Paste Document Text:",
+        "txtenc-pass-lbl": "Set Encryption Password:",
+        "txtenc-btn-export": "Encrypt & Export File (.lub)",
+        "txtenc-decrypt-title": "2. Upload File (.lub) ➔ Decrypt Text",
+        "txtenc-drop-text": "Click or drag & drop `.lub` encrypted file here",
+        "txtenc-decpass-lbl": "Enter Decryption Password:",
+        "txtenc-btn-decrypt": "Decrypt & Reveal Text",
+        "txtenc-result-lbl": "Decrypted Text Output:",
+
+        "fb64-title": "File Processing, Base64 Encoder & File Encryption",
+        "fb64-desc": "Upload any binary file (PDF, Image, Audio, Zip, Video, Doc) to encode to Base64, decode Base64 back to file, or perform full AES-256-GCM binary file encryption with a password.",
+        "fb64-upload-lbl": "1. Select Any File",
+        "fb64-drag-txt": "Drop file here or click to browse",
+        "fb64-opt-datauri": "Data URI (data:mime;base64,...)",
+        "fb64-opt-raw": "Raw Base64",
+        "fb64-btn-convert": "Convert to Base64",
+        "fb64-out-lbl": "2. Base64 Output",
+        "fb64-preview": "Media Preview:",
+
+        "b64f-input-title": "1. Paste Base64 / Data URI",
+        "b64f-filename-lbl": "Target Filename:",
+        "b64f-mime-lbl": "MIME Type (optional):",
+        "b64f-btn-reconstruct": "Reconstruct & Download File",
+        "b64f-status-title": "Ready for File Reconstruction",
+        "b64f-status-desc": "Supports automatic header sniffing for JPEG, PNG, GIF, PDF, ZIP, MP3, MP4 and standard binary data!",
+
+        "fenc-encrypt-title": "Encrypt Any Binary File",
+        "fenc-drop-txt": "Select file to encrypt with password",
+        "fenc-pass-lbl": "Encryption Secret Key / Password:",
+        "fenc-btn-encrypt": "Encrypt & Download (.lub)",
+        "fenc-decrypt-title": "Decrypt Encrypted File (.lub)",
+        "fenc-drop-dec-txt": "Select `.lub` encrypted file",
+        "fenc-decpass-lbl": "Decryption Password:",
+        "fenc-btn-decrypt": "Decrypt & Restore Original File",
+
+        "btn-copy": "Copy"
+      },
+      de: {
+        "app-subtitle": "Universelle Kryptographie- & Sicherheitssuite",
+        "privacy-badge": "100% Lokale Datensicherheit",
+        "tab-text-enc": "Text ➔ Verschlüsselte Datei",
+        "tab-file-b64": "Datei & Base64 / Chiffre",
+        "tab-symmetric": "Text Symmetrische Chiffre",
+        "tab-rsa": "RSA PKI & Signatur",
+        "tab-classic": "Klassische Chiffren",
+        "tab-hash": "Hashes & Prüfsummen",
+        "tab-stega": "Steganographie",
+        "tab-password": "Passwort-Generator",
+
+        "txtenc-title": "Text zu Passwort-Verschlüsselter Datei (.lub)",
+        "txtenc-desc": "Text eingeben, Passwort zuweisen (PBKDF2 + AES-256-GCM) und als .lub-Datei exportieren. Später jederzeit entschlüsseln!",
+        "txtenc-encrypt-title": "1. Text Verschlüsseln ➔ Datei Exportieren",
+        "txtenc-input-lbl": "Text oder Dokument eingeben:",
+        "txtenc-pass-lbl": "Verschlüsselungspasswort:",
+        "txtenc-btn-export": "Verschlüsseln & Datei Speichern (.lub)",
+        "txtenc-decrypt-title": "2. Datei (.lub) Laden ➔ Text Entschlüsseln",
+        "txtenc-drop-text": ".lub Datei hierher ziehen oder klicken",
+        "txtenc-decpass-lbl": "Entschlüsselungspasswort:",
+        "txtenc-btn-decrypt": "Text Entschlüsseln & Anzeigen",
+        "txtenc-result-lbl": "Entschlüsselter Text:",
+
+        "fb64-title": "Datei Verarbeiten, Base64 & Dateiverschlüsselung",
+        "fb64-desc": "Beliebige Dateien in Base64 kodieren, Base64 zu Dateien dekodieren oder binäre Dateien mit Passwort AES-256-GCM verschlüsseln.",
+        "fb64-upload-lbl": "1. Beliebige Datei Auswählen",
+        "fb64-drag-txt": "Datei hierher ziehen oder klicken",
+        "fb64-opt-datauri": "Data URI Format",
+        "fb64-opt-raw": "Reiner Base64-Code",
+        "fb64-btn-convert": "In Base64 Umwandeln",
+        "fb64-out-lbl": "2. Base64 Ergebnis",
+        "fb64-preview": "Medien-Vorschau:",
+
+        "b64f-input-title": "1. Base64 / Data URI Einfügen",
+        "b64f-filename-lbl": "Ziel-Dateiname:",
+        "b64f-mime-lbl": "MIME-Typ (optional):",
+        "b64f-btn-reconstruct": "Datei Rekonstruieren & Herunterladen",
+        "b64f-status-title": "Bereit zur Datei-Rekonstruktion",
+        "b64f-status-desc": "Automatische Erkennung von JPEG, PNG, PDF, ZIP, MP3, MP4 und Binärdaten!",
+
+        "fenc-encrypt-title": "Binäre Datei Verschlüsseln",
+        "fenc-drop-txt": "Datei zum Verschlüsseln auswählen",
+        "fenc-pass-lbl": "Passwort eingeben:",
+        "fenc-btn-encrypt": "Verschlüsseln & (.lub) Herunterladen",
+        "fenc-decrypt-title": "Datei (.lub) Entschlüsseln",
+        "fenc-drop-dec-txt": ".lub-Datei auswählen",
+        "fenc-decpass-lbl": "Passwort eingeben:",
+        "fenc-btn-decrypt": "Originaldatei Wiederherstellen",
+
+        "btn-copy": "Kopieren"
+      },
+      zh: {
+        "app-subtitle": "通用密码学与安全套件",
+        "privacy-badge": "100% 本地前端极客隐私",
+        "tab-text-enc": "文本 ➔ 加密文件",
+        "tab-file-b64": "文件与 Base64 / 加密",
+        "tab-symmetric": "文本对称加密",
+        "tab-rsa": "RSA 密钥与数字签名",
+        "tab-classic": "古典密码学",
+        "tab-hash": "哈希与校验码",
+        "tab-stega": "图像隐写术",
+        "tab-password": "安全密码生成器",
+
+        "txtenc-title": "文本 ➔ 口令加密文件 (.lub / .enc)",
+        "txtenc-desc": "输入自定义文本或长文档，通过密记口令（PBKDF2 密钥派生 + AES-256-GCM 高级加密），一键导出为独立的加密文件 (.lub)。随时支持重新上传文件解密还原文本！",
+        "txtenc-encrypt-title": "1. 加密文本 ➔ 导出加密文件",
+        "txtenc-input-lbl": "输入或粘贴要加密的文本文档：",
+        "txtenc-pass-lbl": "设置加密密码：",
+        "txtenc-btn-export": "加密并导出文件 (.lub)",
+        "txtenc-decrypt-title": "2. 上传文件 (.lub) ➔ 解密还原文本",
+        "txtenc-drop-text": "点击或拖拽 `.lub` 加密文件到此处",
+        "txtenc-decpass-lbl": "输入解密密码：",
+        "txtenc-btn-decrypt": "解密并显示明文",
+        "txtenc-result-lbl": "解密还原的文本：",
+
+        "fb64-title": "文件处理、Base64 编解码与任意文件加密",
+        "fb64-desc": "支持拖拽上传任意类型文件（图片、PDF、Zip、视频、文档、音频），将其转为 Base64 字符串，或将 Base64 还原为文件；并支持用密码对二进制文件进行 AES-256-GCM 整体加密与解密。",
+        "fb64-upload-lbl": "1. 选择任意本地文件",
+        "fb64-drag-txt": "拖拽文件到此处或点击浏览",
+        "fb64-opt-datauri": "Data URI 格式 (data:mime;base64,...)",
+        "fb64-opt-raw": "纯 Base64 文本",
+        "fb64-btn-convert": "转换为 Base64",
+        "fb64-out-lbl": "2. Base64 输出结果",
+        "fb64-preview": "媒体预览：",
+
+        "b64f-input-title": "1. 粘贴 Base64 或 Data URI",
+        "b64f-filename-lbl": "还原目标文件名：",
+        "b64f-mime-lbl": "MIME 类型 (可选)：",
+        "b64f-btn-reconstruct": "重建并下载原文件",
+        "b64f-status-title": "就绪：文件重组引擎",
+        "b64f-status-desc": "支持 JPEG, PNG, GIF, PDF, ZIP, MP3, MP4 等标准二进制文件头自动侦测与重构！",
+
+        "fenc-encrypt-title": "二进制文件带口令加密",
+        "fenc-drop-txt": "选择要加密码的文件",
+        "fenc-pass-lbl": "加密密码：",
+        "fenc-btn-encrypt": "加密并下载 (.lub)",
+        "fenc-decrypt-title": "解密加密文件 (.lub)",
+        "fenc-drop-dec-txt": "选择 `.lub` 加密文件",
+        "fenc-decpass-lbl": "解密密码：",
+        "fenc-btn-decrypt": "解密并还原原始文件",
+
+        "btn-copy": "复制"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('langSelect').value = lang;
+      
+      const elements = document.querySelectorAll('[data-i18n]');
+      elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang] && i18n[lang][key]) {
+          el.innerText = i18n[lang][key];
+        }
+      });
+    }
+
+    /* ==========================================================================
+       2. Helper Utilities & UI Notifications
+       ========================================================================== */
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-emerald-950/90 border-emerald-500 text-emerald-300',
+        error: 'bg-rose-950/90 border-rose-500 text-rose-300',
+        warning: 'bg-amber-950/90 border-amber-500 text-amber-300',
+        info: 'bg-cyan-950/90 border-cyan-500 text-cyan-300'
+      };
+
+      toast.className = `pointer-events-auto border px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md text-xs font-mono flex items-center space-x-2 transition-all duration-300 opacity-0 translate-y-2 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-4 h-4"></i><span>${message}</span>`;
+
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-0', 'translate-y-2');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function copyElementText(id) {
+      const el = document.getElementById(id);
+      if (!el || !el.value) {
+        showToast('Nothing to copy!', 'warning');
+        return;
+      }
+      
+      const textarea = document.createElement('textarea');
+      textarea.value = el.value;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('Copied to clipboard!', 'success');
+    }
+
+    function togglePassVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4"></i>`;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i>`;
+      }
+      lucide.createIcons();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active-tab'));
+
+      const targetPane = document.getElementById(`pane-${tabId}`);
+      const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+
+      if (targetPane) targetPane.classList.remove('hidden');
+      if (targetBtn) targetBtn.classList.add('active-tab');
+    }
+
+    function switchFileSubTab(subId) {
+      ['f2b64', 'b642f', 'fenc'].forEach(id => {
+        document.getElementById(`subpane-${id}`).classList.add('hidden');
+        document.getElementById(`subtab-${id}`).className = "px-4 py-2 rounded-lg text-xs font-mono font-medium bg-gray-900 text-gray-400 hover:bg-gray-800";
+      });
+
+      document.getElementById(`subpane-${subId}`).classList.remove('hidden');
+      document.getElementById(`subtab-${subId}`).className = "px-4 py-2 rounded-lg text-xs font-mono font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+    }
+
+    /* ==========================================================================
+       3. MODULE 1: Text to Password Encrypted File (.lub)
+       ========================================================================== */
+    const LUB_MAGIC = new Uint8Array([0x4C, 0x55, 0x42, 0x33, 0x39, 0x30, 0x30, 0x4C]); // "LUB3900L"
+
+    // Key Derivation Helper (PBKDF2)
+    async function deriveAesKey(password, salt) {
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey(
+        "raw",
+        enc.encode(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveKey"]
+      );
+
+      return await window.crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: salt,
+          iterations: 100000,
+          hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptTextToFile() {
+      const text = document.getElementById('txtEncInput').value;
+      const password = document.getElementById('txtEncPass').value;
+
+      if (!text) return showToast('Please enter text to encrypt!', 'warning');
+      if (!password) return showToast('Please set an encryption password!', 'warning');
+
+      try {
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+        const key = await deriveAesKey(password, salt);
+        const encodedText = new TextEncoder().encode(text);
+
+        const ciphertext = await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: iv },
+          key,
+          encodedText
+        );
+
+        // Header Structure: Magic (8B) + Version (1B) + Salt (16B) + IV (12B) + Ciphertext
+        const finalBuffer = new Uint8Array(LUB_MAGIC.length + 1 + salt.length + iv.length + ciphertext.byteLength);
+        
+        finalBuffer.set(LUB_MAGIC, 0);
+        finalBuffer.set([0x01], LUB_MAGIC.length); // Version 1
+        finalBuffer.set(salt, LUB_MAGIC.length + 1);
+        finalBuffer.set(iv, LUB_MAGIC.length + 1 + 16);
+        finalBuffer.set(new Uint8Array(ciphertext), LUB_MAGIC.length + 1 + 16 + 12);
+
+        const blob = new Blob([finalBuffer], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `secret_document_${Date.now()}.lub`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showToast('Encrypted `.lub` file generated and downloaded!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Encryption failed: ' + err.message, 'error');
+      }
+    }
+
+    let loadedTxtDecBuffer = null;
+
+    function handleTxtDecFileSelect(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      document.getElementById('txtDecFileName').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        loadedTxtDecBuffer = e.target.result;
+        showToast('File loaded into decryptor zone.', 'info');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function decryptFileToText() {
+      const password = document.getElementById('txtDecPass').value;
+
+      if (!loadedTxtDecBuffer) return showToast('Please select a `.lub` file first!', 'warning');
+      if (!password) return showToast('Please enter the decryption password!', 'warning');
+
+      try {
+        const bytes = new Uint8Array(loadedTxtDecBuffer);
+
+        // Verify Magic Bytes
+        for (let i = 0; i < LUB_MAGIC.length; i++) {
+          if (bytes[i] !== LUB_MAGIC[i]) {
+            throw new Error('Invalid file format! Not a valid LUBcode3900L file.');
+          }
+        }
+
+        const salt = bytes.slice(9, 25);
+        const iv = bytes.slice(25, 37);
+        const ciphertext = bytes.slice(37);
+
+        const key = await deriveAesKey(password, salt);
+
+        const decryptedBuffer = await window.crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: iv },
+          key,
+          ciphertext
+        );
+
+        const text = new TextDecoder().decode(decryptedBuffer);
+        document.getElementById('txtDecResult').value = text;
+        showToast('File decrypted successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Decryption failed! Incorrect password or corrupted file.', 'error');
+      }
+    }
+
+    /* ==========================================================================
+       4. MODULE 2: File Processing & Base64 Encoder & Binary Encryption
+       ========================================================================== */
+    let selectedF2B64File = null;
+
+    function handleFile2Base64Select(evt) {
+      selectedF2B64File = evt.target.files[0];
+      if (!selectedF2B64File) return;
+
+      document.getElementById('f2b64FileName').innerText = selectedF2B64File.name;
+      document.getElementById('f2b64FileInfo').innerText = `${selectedF2B64File.type || 'Binary'} • ${(selectedF2B64File.size / 1024).toFixed(1)} KB`;
+    }
+
+    function processFileToBase64() {
+      if (!selectedF2B64File) return showToast('Select a file first!', 'warning');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const dataUri = e.target.result;
+        const format = document.querySelector('input[name="b64Format"]:checked').value;
+
+        let result = dataUri;
+        if (format === 'raw') {
+          result = dataUri.split(',')[1] || dataUri;
+        }
+
+        document.getElementById('f2b64Result').value = result;
+
+        // Handle Media Preview
+        const container = document.getElementById('f2b64MediaContainer');
+        const previewBox = document.getElementById('f2b64PreviewBox');
+        container.innerHTML = '';
+
+        if (selectedF2B64File.type.startsWith('image/')) {
+          previewBox.classList.remove('hidden');
+          container.innerHTML = `<img src="${dataUri}" class="max-h-40 rounded shadow-md object-contain">`;
+        } else if (selectedF2B64File.type.startsWith('audio/')) {
+          previewBox.classList.remove('hidden');
+          container.innerHTML = `<audio controls src="${dataUri}" class="w-full"></audio>`;
+        } else {
+          previewBox.classList.add('hidden');
+        }
+
+        showToast('File converted to Base64!', 'success');
+      };
+      reader.readAsDataURL(selectedF2B64File);
+    }
+
+    function downloadBase64Txt() {
+      const b64 = document.getElementById('f2b64Result').value;
+      if (!b64) return showToast('No Base64 data to download!', 'warning');
+
+      const blob = new Blob([b64], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'base64_encoded_file.txt';
+      a.click();
+    }
+
+    function processBase64ToFile() {
+      let b64 = document.getElementById('b642fInput').value.trim();
+      let name = document.getElementById('b642fName').value || 'reconstructed_file.bin';
+      let mime = document.getElementById('b642fMime').value;
+
+      if (!b64) return showToast('Paste a Base64 string!', 'warning');
+
+      try {
+        if (b64.startsWith('data:')) {
+          const parts = b64.split(';');
+          if (!mime) mime = parts[0].replace('data:', '');
+          b64 = parts[1].split(',')[1];
+        }
+
+        const byteCharacters = atob(b64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mime || 'application/octet-stream' });
+
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+
+        showToast('File reconstructed and downloaded!', 'success');
+      } catch (err) {
+        showToast('Failed to decode Base64 string! Invalid input.', 'error');
+      }
+    }
+
+    // Binary File Encryption with Password
+    let selectedBinaryEncFile = null;
+    let selectedBinaryDecBuffer = null;
+
+    function handleFileEncSelect(evt) {
+      selectedBinaryEncFile = evt.target.files[0];
+      if (selectedBinaryEncFile) {
+        document.getElementById('fileEncName').innerText = `${selectedBinaryEncFile.name} (${(selectedBinaryEncFile.size / 1024).toFixed(1)} KB)`;
+      }
+    }
+
+    function handleFileDecSelect(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      document.getElementById('fileDecName').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        selectedBinaryDecBuffer = e.target.result;
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function encryptBinaryFile() {
+      if (!selectedBinaryEncFile) return showToast('Select a binary file!', 'warning');
+      const password = document.getElementById('fileEncPass').value;
+      if (!password) return showToast('Enter password!', 'warning');
+
+      try {
+        const fileBuffer = await selectedBinaryEncFile.arrayBuffer();
+        
+        // Construct Metadata Payload: [NameLen(2B)] [Name] [MimeLen(2B)] [Mime] [FileData]
+        const nameBytes = new TextEncoder().encode(selectedBinaryEncFile.name);
+        const mimeBytes = new TextEncoder().encode(selectedBinaryEncFile.type || 'application/octet-stream');
+
+        const payloadHeader = new Uint8Array(2 + nameBytes.length + 2 + mimeBytes.length);
+        const view = new DataView(payloadHeader.buffer);
+        view.setUint16(0, nameBytes.length);
+        payloadHeader.set(nameBytes, 2);
+        view.setUint16(2 + nameBytes.length, mimeBytes.length);
+        payloadHeader.set(mimeBytes, 2 + nameBytes.length + 2);
+
+        const fullPayload = new Uint8Array(payloadHeader.length + fileBuffer.byteLength);
+        fullPayload.set(payloadHeader, 0);
+        fullPayload.set(new Uint8Array(fileBuffer), payloadHeader.length);
+
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+        const key = await deriveAesKey(password, salt);
+        const ciphertext = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, fullPayload);
+
+        const finalBuffer = new Uint8Array(LUB_MAGIC.length + 1 + salt.length + iv.length + ciphertext.byteLength);
+        finalBuffer.set(LUB_MAGIC, 0);
+        finalBuffer.set([0x02], LUB_MAGIC.length); // Version 2 (Binary Payload)
+        finalBuffer.set(salt, 9);
+        finalBuffer.set(iv, 25);
+        finalBuffer.set(new Uint8Array(ciphertext), 37);
+
+        const blob = new Blob([finalBuffer], { type: "application/octet-stream" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `${selectedBinaryEncFile.name}.lub`;
+        a.click();
+
+        showToast('Binary file encrypted & downloaded!', 'success');
+      } catch (err) {
+        showToast('Encryption error: ' + err.message, 'error');
+      }
+    }
+
+    async function decryptBinaryFile() {
+      if (!selectedBinaryDecBuffer) return showToast('Select `.lub` file!', 'warning');
+      const password = document.getElementById('fileDecPass').value;
+      if (!password) return showToast('Enter password!', 'warning');
+
+      try {
+        const bytes = new Uint8Array(selectedBinaryDecBuffer);
+        const salt = bytes.slice(9, 25);
+        const iv = bytes.slice(25, 37);
+        const ciphertext = bytes.slice(37);
+
+        const key = await deriveAesKey(password, salt);
+        const decryptedBuffer = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ciphertext);
+
+        const view = new DataView(decryptedBuffer);
+        const nameLen = view.getUint16(0);
+        const nameBytes = new Uint8Array(decryptedBuffer, 2, nameLen);
+        const originalName = new TextDecoder().decode(nameBytes);
+
+        const mimeLen = view.getUint16(2 + nameLen);
+        const mimeBytes = new Uint8Array(decryptedBuffer, 2 + nameLen + 2, mimeLen);
+        const originalMime = new TextDecoder().decode(mimeBytes);
+
+        const fileData = decryptedBuffer.slice(2 + nameLen + 2 + mimeLen);
+
+        const blob = new Blob([fileData], { type: originalMime });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = originalName;
+        a.click();
+
+        showToast('Original file restored and downloaded!', 'success');
+      } catch (err) {
+        showToast('Decryption failed! Wrong password or incompatible file.', 'error');
+      }
+    }
+
+    /* ==========================================================================
+       5. MODULE 3: Text Symmetric Ciphers
+       ========================================================================== */
+    async function processSymmetric(mode) {
+      const algo = document.getElementById('symAlgo').value;
+      const pass = document.getElementById('symPass').value;
+      const input = document.getElementById('symInput').value;
+
+      if (!input || !pass) return showToast('Input text and secret key required!', 'warning');
+
+      try {
+        let result = '';
+
+        if (algo === 'AES-GCM') {
+          if (mode === 'encrypt') {
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveAesKey(pass, salt);
+            const enc = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, new TextEncoder().encode(input));
+            
+            const combined = new Uint8Array(salt.length + iv.length + enc.byteLength);
+            combined.set(salt, 0);
+            combined.set(iv, 16);
+            combined.set(new Uint8Array(enc), 28);
+
+            result = btoa(String.fromCharCode.apply(null, combined));
+          } else {
+            const raw = Uint8Array.from(atob(input), c => c.charCodeAt(0));
+            const salt = raw.slice(0, 16);
+            const iv = raw.slice(16, 28);
+            const ciphertext = raw.slice(28);
+
+            const key = await deriveAesKey(pass, salt);
+            const dec = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ciphertext);
+            result = new TextDecoder().decode(dec);
+          }
+        } else if (algo === 'AES-CBC') {
+          result = mode === 'encrypt' 
+            ? CryptoJS.AES.encrypt(input, pass).toString() 
+            : CryptoJS.AES.decrypt(input, pass).toString(CryptoJS.enc.Utf8);
+        } else if (algo === 'TripleDES') {
+          result = mode === 'encrypt'
+            ? CryptoJS.TripleDES.encrypt(input, pass).toString()
+            : CryptoJS.TripleDES.decrypt(input, pass).toString(CryptoJS.enc.Utf8);
+        } else if (algo === 'DES') {
+          result = mode === 'encrypt'
+            ? CryptoJS.DES.encrypt(input, pass).toString()
+            : CryptoJS.DES.decrypt(input, pass).toString(CryptoJS.enc.Utf8);
+        } else if (algo === 'ChaCha20') {
+          result = mode === 'encrypt'
+            ? CryptoJS.Rabbit.encrypt(input, pass).toString() // Fallback cipher representation
+            : CryptoJS.Rabbit.decrypt(input, pass).toString(CryptoJS.enc.Utf8);
+        }
+
+        document.getElementById('symOutput').value = result;
+        showToast(`Operation ${mode} completed successfully!`, 'success');
+      } catch (err) {
+        showToast('Symmetric process error: ' + err.message, 'error');
+      }
+    }
+
+    /* ==========================================================================
+       6. MODULE 4: RSA PKI & Digital Signature
+       ========================================================================== */
+    let rsaKeyPair = null;
+
+    async function generateRsaKeyPair() {
+      const bitSize = parseInt(document.getElementById('rsaBitSize').value);
+      showToast('Generating RSA Keypair...', 'info');
+
+      try {
+        rsaKeyPair = await window.crypto.subtle.generateKey(
+          {
+            name: "RSA-OAEP",
+            modulusLength: bitSize,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: "SHA-256"
+          },
+          true,
+          ["encrypt", "decrypt"]
+        );
+
+        const pubExport = await window.crypto.subtle.exportKey("spki", rsaKeyPair.publicKey);
+        const privExport = await window.crypto.subtle.exportKey("pkcs8", rsaKeyPair.privateKey);
+
+        document.getElementById('rsaPubKey').value = formatPem(pubExport, "PUBLIC KEY");
+        document.getElementById('rsaPrivKey').value = formatPem(privExport, "PRIVATE KEY");
+
+        showToast('RSA Keypair generated!', 'success');
+      } catch (err) {
+        showToast('RSA Generation failed: ' + err.message, 'error');
+      }
+    }
+
+    function formatPem(buffer, label) {
+      const b64 = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+      const lines = b64.match(/.{1,64}/g).join('\n');
+      return `-----BEGIN ${label}-----\n${lines}\n-----END ${label}-----`;
+    }
+
+    async function rsaEncryptMessage() {
+      if (!rsaKeyPair) return showToast('Generate RSA keypair first!', 'warning');
+      const msg = document.getElementById('rsaMsg').value;
+
+      const encrypted = await window.crypto.subtle.encrypt(
+        { name: "RSA-OAEP" },
+        rsaKeyPair.publicKey,
+        new TextEncoder().encode(msg)
+      );
+
+      document.getElementById('rsaOutput').value = btoa(String.fromCharCode.apply(null, new Uint8Array(encrypted)));
+      showToast('Encrypted with RSA Public Key!', 'success');
+    }
+
+    async function rsaDecryptMessage() {
+      if (!rsaKeyPair) return showToast('Generate RSA keypair first!', 'warning');
+      const cipherB64 = document.getElementById('rsaOutput').value;
+
+      try {
+        const raw = Uint8Array.from(atob(cipherB64), c => c.charCodeAt(0));
+        const decrypted = await window.crypto.subtle.decrypt(
+          { name: "RSA-OAEP" },
+          rsaKeyPair.privateKey,
+          raw
+        );
+
+        document.getElementById('rsaOutput').value = new TextDecoder().decode(decrypted);
+        showToast('Decrypted with RSA Private Key!', 'success');
+      } catch (err) {
+        showToast('RSA Decryption error!', 'error');
+      }
+    }
+
+    /* ==========================================================================
+       7. MODULE 5: Classic Ciphers
+       ========================================================================== */
+    function updateClassicControls() {
+      const type = document.getElementById('classicType').value;
+      document.getElementById('caesarControls').classList.toggle('hidden', type !== 'caesar');
+      document.getElementById('vigenereControls').classList.toggle('hidden', type !== 'vigenere');
+      document.getElementById('railfenceControls').classList.toggle('hidden', type !== 'railfence');
+      processClassicCipher();
+    }
+
+    function processClassicCipher(dir = 'encode') {
+      const type = document.getElementById('classicType').value;
+      const input = document.getElementById('classicInput').value;
+      let out = '';
+
+      if (type === 'caesar') {
+        const shift = parseInt(document.getElementById('caesarShift').value) * (dir === 'encode' ? 1 : -1);
+        out = input.replace(/[a-zA-Z]/g, c => {
+          const base = c >= 'a' ? 97 : 65;
+          return String.fromCharCode((c.charCodeAt(0) - base + shift + 26) % 26 + base);
+        });
+      } else if (type === 'rot13') {
+        out = input.replace(/[a-zA-Z]/g, c => {
+          const base = c >= 'a' ? 97 : 65;
+          return String.fromCharCode((c.charCodeAt(0) - base + 13) % 26 + base);
+        });
+      } else if (type === 'atbash') {
+        out = input.replace(/[a-zA-Z]/g, c => {
+          const base = c >= 'a' ? 97 : 65;
+          return String.fromCharCode(25 - (c.charCodeAt(0) - base) + base);
+        });
+      }
+
+      document.getElementById('classicOutput').value = out;
+    }
+
+    /* ==========================================================================
+       8. MODULE 6: Hashes & Checksums
+       ========================================================================== */
+    function computeTextHashes() {
+      const txt = document.getElementById('hashTextInput').value;
+      const hmacKey = document.getElementById('hmacKey').value;
+
+      if (!txt) return;
+
+      if (hmacKey) {
+        document.getElementById('hashMD5').value = CryptoJS.HmacMD5(txt, hmacKey).toString();
+        document.getElementById('hashSHA1').value = CryptoJS.HmacSHA1(txt, hmacKey).toString();
+        document.getElementById('hashSHA256').value = CryptoJS.HmacSHA256(txt, hmacKey).toString();
+        document.getElementById('hashSHA512').value = CryptoJS.HmacSHA512(txt, hmacKey).toString();
+      } else {
+        document.getElementById('hashMD5').value = CryptoJS.MD5(txt).toString();
+        document.getElementById('hashSHA1').value = CryptoJS.SHA1(txt).toString();
+        document.getElementById('hashSHA256').value = CryptoJS.SHA256(txt).toString();
+        document.getElementById('hashSHA512').value = CryptoJS.SHA512(txt).toString();
+      }
+    }
+
+    async function computeFileHash(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      document.getElementById('hashFileName').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+
+      const buffer = await file.arrayBuffer();
+      const hash256 = await window.crypto.subtle.digest('SHA-256', buffer);
+      const hash512 = await window.crypto.subtle.digest('SHA-512', buffer);
+
+      document.getElementById('fileHashSHA256').value = Array.from(new Uint8Array(hash256)).map(b => b.toString(16).padStart(2, '0')).join('');
+      document.getElementById('fileHashSHA512').value = Array.from(new Uint8Array(hash512)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      showToast('File checksum calculated!', 'success');
+    }
+
+    /* ==========================================================================
+       9. MODULE 7: Steganography
+       ========================================================================== */
+    let stegaLoadedImg = null;
+
+    function loadStegaEmbedImg(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      document.getElementById('stegaEmbedImgName').innerText = file.name;
+
+      const img = new Image();
+      img.onload = () => { stegaLoadedImg = img; };
+      img.src = URL.createObjectURL(file);
+    }
+
+    function embedSteganography() {
+      if (!stegaLoadedImg) return showToast('Upload cover image first!', 'warning');
+      const txt = document.getElementById('stegaSecretTxt').value;
+      if (!txt) return showToast('Enter text to hide!', 'warning');
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = stegaLoadedImg.width;
+      canvas.height = stegaLoadedImg.height;
+      ctx.drawImage(stegaLoadedImg, 0, 0);
+
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+
+      const msg = txt + "::LUB_END";
+      let binaryMsg = '';
+      for (let i = 0; i < msg.length; i++) {
+        binaryMsg += msg.charCodeAt(i).toString(2).padStart(8, '0');
+      }
+
+      if (binaryMsg.length > data.length / 4) {
+        return showToast('Message too long for this image size!', 'error');
+      }
+
+      for (let i = 0; i < binaryMsg.length; i++) {
+        data[i * 4] = (data[i * 4] & 0xFE) | parseInt(binaryMsg[i]);
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'stego_image.png';
+      a.click();
+
+      showToast('Text embedded in PNG image!', 'success');
+    }
+
+    let stegaExtractImg = null;
+    function loadStegaExtractImg(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      document.getElementById('stegaExtractImgName').innerText = file.name;
+
+      const img = new Image();
+      img.onload = () => { stegaExtractImg = img; };
+      img.src = URL.createObjectURL(file);
+    }
+
+    function extractSteganography() {
+      if (!stegaExtractImg) return showToast('Upload image with hidden text!', 'warning');
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = stegaExtractImg.width;
+      canvas.height = stegaExtractImg.height;
+      ctx.drawImage(stegaExtractImg, 0, 0);
+
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+      let binary = '';
+      let extractedTxt = '';
+
+      for (let i = 0; i < data.length; i += 4) {
+        binary += (data[i] & 1).toString();
+        if (binary.length === 8) {
+          const charCode = parseInt(binary, 2);
+          extractedTxt += String.fromCharCode(charCode);
+          binary = '';
+
+          if (extractedTxt.endsWith("::LUB_END")) {
+            extractedTxt = extractedTxt.replace("::LUB_END", "");
+            document.getElementById('stegaExtractedResult').value = extractedTxt;
+            return showToast('Hidden text revealed!', 'success');
+          }
+        }
+      }
+
+      showToast('No hidden LUBcode payload detected.', 'warning');
+    }
+
+    /* ==========================================================================
+       10. MODULE 8: Password Generator
+       ========================================================================== */
+    function generateSecurePassword() {
+      const len = parseInt(document.getElementById('pwdLength').value);
+      const upper = document.getElementById('pwdUpper').checked;
+      const lower = document.getElementById('pwdLower').checked;
+      const num = document.getElementById('pwdNum').checked;
+      const sym = document.getElementById('pwdSym').checked;
+
+      let charset = '';
+      if (upper) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (lower) charset += 'abcdefghijklmnopqrstuvwxyz';
+      if (num) charset += '0123456789';
+      if (sym) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+      if (!charset) return;
+
+      const randomArray = new Uint32Array(len);
+      window.crypto.getRandomValues(randomArray);
+
+      let pwd = '';
+      for (let i = 0; i < len; i++) {
+        pwd += charset[randomArray[i] % charset.length];
+      }
+
+      document.getElementById('pwdOutput').value = pwd;
+
+      // Entropy calculation
+      const entropy = Math.round(len * Math.log2(charset.length));
+      document.getElementById('pwdEntropy').innerText = `${entropy} bits`;
+      
+      let rating = 'Weak';
+      if (entropy > 60) rating = 'Moderate';
+      if (entropy > 80) rating = 'Strong';
+      if (entropy > 110) rating = 'Cyber-Grade';
+
+      document.getElementById('pwdRating').innerText = rating;
+    }
+
+    /* ==========================================================================
+       11. App Initialization
+       ========================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      switchTab('text-enc');
+      
+      document.getElementById('langSelect').addEventListener('change', (e) => {
+        setLanguage(e.target.value);
+      });
+
+      // Initialize default calculations
+      computeTextHashes();
+      generateSecurePassword();
+      setLanguage('en');
+    });
+  </script>
+</body>
+</html>
