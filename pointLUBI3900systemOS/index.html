@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bewertungssystem · Mehrere Bewertungsrunden mit Statistik</title>
+<style>
+/* SECTION: base */
+:root{
+  --bg:#faf6fb; --card:#ffffff; --ink:#2b2140; --muted:#7c7193;
+  --brand:#b15fd6; --brand2:#ff7bac; --accent:#6a5af9;
+  --line:#eee3f2; --ok:#1fa971; --warn:#e05555;
+  --shadow:0 8px 28px rgba(120,70,160,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;
+  background:linear-gradient(180deg,#fdf3fa 0%,var(--bg) 260px);color:var(--ink);min-height:100vh}
+button{font:inherit;cursor:pointer;border:0}
+input{font:inherit}
+.hidden{display:none!important}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 64px}
+
+/* SECTION: header */
+.apphead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700}
+.logo .mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:20px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:var(--shadow)}
+.logo small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.userchip{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);box-shadow:var(--shadow)}
+
+/* SECTION: buttons & forms */
+.btn{border-radius:12px;padding:11px 20px;font-weight:600;transition:transform .06s ease,filter .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:var(--shadow)}
+.btn-ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn-danger{background:#fff;color:var(--warn);border:1px solid #f4d1d1}
+.btn-sm{padding:7px 13px;font-size:13px;border-radius:10px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;background:#fff;outline:none}
+.field input:focus{border-color:var(--brand)}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.err{font-size:13px;color:var(--warn);margin-top:8px;min-height:18px}
+
+/* SECTION: home cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .1s}
+.pcard:hover{transform:translateY(-2px)}
+.pcard h3{font-size:17px}
+.pcard .meta{font-size:12.5px;color:var(--muted);line-height:1.7}
+.pcard .badge{align-self:flex-start;font-size:11.5px;color:var(--brand);background:#f6ebfb;border-radius:999px;padding:3px 10px}
+.newcard{border:2px dashed #d9c6e6;border-radius:16px;display:grid;place-items:center;color:var(--brand);
+  font-weight:600;min-height:132px;background:rgba(255,255,255,.5)}
+.emptybox{text-align:center;color:var(--muted);padding:44px 16px;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.emptybox .big{font-size:34px;margin-bottom:8px}
+
+/* SECTION: tabs */
+.tabs{display:flex;gap:6px;background:#f2e8f5;border-radius:14px;padding:5px;margin-bottom:18px;overflow-x:auto}
+.tab{flex:1;white-space:nowrap;padding:10px 14px;border-radius:10px;font-weight:600;color:var(--muted);background:transparent}
+.tab.on{background:#fff;color:var(--brand);box-shadow:0 2px 10px rgba(130,80,170,.12)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+.panel h2{font-size:16px;margin-bottom:4px}
+.panel .sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+.rowbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* SECTION: list */
+.mlist{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.mrow{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fdfbff}
+.mrow .nm{font-weight:600;flex:1;min-width:0;word-break:break-all}
+.mrow .nt{font-size:12px;color:var(--muted)}
+.mrow .acts{display:flex;gap:6px}
+.avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--brand))}
+
+/* SECTION: scoring */
+.roundtag{display:inline-block;font-size:12.5px;font-weight:700;color:#fff;border-radius:999px;padding:4px 14px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));margin-bottom:12px}
+.srow{display:grid;grid-template-columns:minmax(90px,1fr) 2.2fr auto;gap:12px;align-items:center;
+  padding:12px 6px;border-bottom:1px dashed var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .nm{font-weight:600;display:flex;align-items:center;gap:8px;min-width:0}
+.srow .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow input[type=range]{width:100%;accent-color:var(--brand)}
+.srow .num{display:flex;align-items:center;gap:4px}
+.srow .num input{width:78px;padding:8px;border:1.5px solid var(--line);border-radius:10px;text-align:center}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px;padding:0 2px}
+.hist{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.hchip{font-size:12.5px;background:#f6ebfb;color:var(--brand);border-radius:10px;padding:6px 12px;display:flex;gap:8px;align-items:center}
+
+/* SECTION: stats table */
+.statcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:#fbf7fd;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.stat b{display:block;font-size:22px;color:var(--brand)}
+.stat i{font-style:normal;font-size:12px;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:10px 12px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#f6eff9;color:#5b4a7a;font-weight:700}
+td.name{text-align:left;font-weight:600}
+td.rec{white-space:normal;text-align:left;font-size:12.5px;color:var(--muted);min-width:210px}
+.best{color:var(--ok);font-weight:700}
+
+/* SECTION: modal & toast */
+.mask{position:fixed;inset:0;background:rgba(45,30,60,.42);display:grid;place-items:center;padding:18px;z-index:50}
+.modal{background:#fff;border-radius:18px;padding:22px;width:min(430px,100%);box-shadow:0 20px 60px rgba(60,30,90,.3)}
+.modal h3{font-size:17px;margin-bottom:14px}
+.modal .foot{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#3a2b52;color:#fff;
+  padding:11px 20px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:var(--warn)}
+
+@media (max-width:640px){
+  .srow{grid-template-columns:1fr;gap:6px}
+  .srow .num input{width:68px}
+  .logo{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SECTION: header markup -->
+  <header class="apphead">
+    <div class="logo"><div class="mark">★</div>
+      <div>Bewertungssystem<small>Eigene Listen · mehrere Runden · automatische Statistik</small></div>
+    </div>
+    <div id="userChip" class="userchip hidden"></div>
+  </header>
+
+  <!-- SECTION: view home -->
+  <main id="viewHome">
+    <div class="rowbar" style="justify-content:space-between;margin-bottom:14px">
+      <h2 style="font-size:17px">Meine Bewertungssysteme</h2>
+      <button class="btn btn-primary" id="btnCreate">＋ Neues System</button>
+    </div>
+    <div id="projGrid" class="grid"></div>
+    <div id="homeEmpty" class="emptybox hidden">
+      <div class="big">🌸</div>
+      <p>Noch kein Bewertungssystem vorhanden – oben rechts das erste anlegen.</p>
+      <p class="hint">Jedes System hat eine eindeutige ID und ein Passwort. Systeme sind getrennt und stören sich nicht gegenseitig.</p>
+    </div>
+    <p class="hint" style="margin-top:16px;text-align:center">Alle Daten bleiben lokal in diesem Browser (ohne Netzverbindung). Bei Geräte Wechsel den Excel-Export nutzen.</p>
+  </main>
+
+  <!-- SECTION: view app -->
+  <main id="viewApp" class="hidden">
+    <div class="tabs">
+      <button class="tab on" data-tab="list">Liste</button>
+      <button class="tab" data-tab="score">Bewerten</button>
+      <button class="tab" data-tab="stat">Statistik</button>
+      <button class="tab" data-tab="data">Daten</button>
+    </div>
+
+    <section id="tab-list" class="panel">
+      <h2>Zu bewertende Personen</h2>
+      <p class="sub">Namen hinzufügen, die bewertet werden sollen – Umbenennen und Löschen jederzeit möglich.</p>
+      <div class="rowbar">
+        <input id="mName" placeholder="Name / Spitzname" style="flex:1;min-width:150px;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px">
+        <input id="mNote" placeholder="Notiz (optional)" style="flex:1;min-width:130px;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px">
+        <button class="btn btn-primary" id="btnAddMember">Hinzufügen</button>
+      </div>
+      <div id="memberList" class="mlist"></div>
+      <div id="memberEmpty" class="hint" style="margin-top:14px">Die Liste ist noch leer – bitte zuerst Namen hinzufügen, dann kann bewertet werden.</div>
+    </section>
+
+    <section id="tab-score" class="panel hidden">
+      <h2>Bewertung abgeben</h2>
+      <p class="sub">0–10 Punkte, in 0,5er-Schritten. Regler benutzen oder direkt eingeben.</p>
+      <div id="roundWrap">
+        <span class="roundtag" id="roundTag">Runde 1</span>
+        <div id="scoreRows"></div>
+        <div class="rowbar" style="margin-top:16px">
+          <button class="btn btn-primary" id="btnSubmitScore" data-primary-action="submit-round">Diese Runde speichern</button>
+          <button class="btn btn-ghost" id="btnClearScores">Eingabe zurücksetzen</button>
+        </div>
+        <div class="err" id="scoreErr"></div>
+      </div>
+      <h2 style="margin-top:22px">Bisherige Runden</h2>
+      <p class="sub">Es gibt <b id="roundCount">0</b> gespeicherte Runde(n) – zum Nachbearbeiten öffnen.</p>
+      <div id="roundHist" class="hist"></div>
+    </section>
+
+    <section id="tab-stat" class="panel hidden">
+      <h2>Statistik</h2>
+      <p class="sub">Durchschnitt, letzte, höchste und niedrigste Bewertung – jeweils auf 0,5-Punkte gerundet.</p>
+      <div class="statcards" id="statCards"></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th style="text-align:left">Name</th><th>Anzahl</th><th>Ø</th><th>Letzte</th><th>Max</th><th>Min</th><th>Alle Runden</th></tr></thead>
+          <tbody id="statBody"></tbody>
+        </table>
+      </div>
+      <div id="statEmpty" class="hint" style="margin-top:12px">Noch keine Bewertung gespeichert – bitte zuerst im Tab „Bewerten“ eine Runde speichern.</div>
+    </section>
+
+    <section id="tab-data" class="panel hidden">
+      <h2>Datenverwaltung</h2>
+      <p class="sub">Exportieren, umbenennen und Löschen der Daten dieses Systems.</p>
+      <div class="rowbar" style="flex-direction:column;align-items:stretch;gap:12px">
+        <button class="btn btn-primary" id="btnExport" data-primary-action="export-xls">Excel exportieren (.xls, direkt öffenbar)</button>
+        <button class="btn btn-ghost" id="btnRename">System umbenennen</button>
+        <button class="btn btn-danger" id="btnDelProj">Alle Daten dieses Systems löschen</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- SECTION: modal home -->
+<div id="modalMask" class="mask hidden">
+  <div class="modal">
+    <h3 id="mTitle">Neues Bewertungssystem</h3>
+    <div id="mBody"></div>
+    <div class="err" id="mErr"></div>
+    <div class="foot">
+      <button class="btn btn-ghost" id="mCancel">Abbrechen</button>
+      <button class="btn btn-primary" id="mOk">OK</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* SECTION: storage */
+'use strict';
+var DB_KEY='ratingSystem.local.v1', SESSION_KEY='ratingSystem.local.session.v1';
+function loadDB(){ try{ var d=JSON.parse(localStorage.getItem(DB_KEY)); return (d&&d.accounts&&d.projects)?d:{accounts:{},projects:{}}; }catch(e){ return {accounts:{},projects:{}}; } }
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+var db=loadDB();
+var curId=localStorage.getItem(SESSION_KEY)||'';
+if(curId && !db.accounts[curId]) curId='';
+
+function projOf(id){ if(!db.projects[id]) db.projects[id]={members:[],rounds:[],seq:1}; return db.projects[id]; }
+function proj(){ return projOf(curId); }
+/* auf das nächstliegende 0,5-Raster runden: 0,2→0 · 0,4→0,5 · 0,75→1,0 */
+function snap5(x){ return Math.round(x*2)/2; }
+/* deutsche Schreibweise mit Komma für Anzeigen */
+function fmtScore(x){ return String(x).replace('.', ','); }
+
+/* SECTION: utils */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function $(id){ return document.getElementById(id); }
+var toastTimer=null;
+function toast(msg,bad){ var t=$('toast'); t.textContent=msg; t.className='show'+(bad?' bad':'');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.className='';},2400); }
+function fmtTime(ts){ var d=new Date(ts); function p(n){return (n<10?'0':'')+n;}
+  return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+
+/* SECTION: modal */
+var modalOk=null;
+function openModal(title,bodyHTML,onOk){ $('mTitle').textContent=title; $('mBody').innerHTML=bodyHTML;
+  $('mErr').textContent=''; modalOk=onOk; $('modalMask').classList.remove('hidden');
+  var fi=$('mBody').querySelector('input'); if(fi) fi.focus(); }
+function closeModal(){ $('modalMask').classList.add('hidden'); modalOk=null; }
+$('mCancel').addEventListener('click',closeModal);
+$('mOk').addEventListener('click',function(){ if(modalOk) modalOk(); });
+$('modalMask').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+/* SECTION: home render */
+function renderHome(){
+  var ids=Object.keys(db.accounts);
+  $('homeEmpty').classList.toggle('hidden',ids.length>0);
+  var g=$('projGrid'); g.innerHTML='';
+  ids.forEach(function(id){
+    var a=db.accounts[id], p=db.projects[id]||{members:[],rounds:[]};
+    var card=document.createElement('div'); card.className='pcard';
+    card.innerHTML='<span class="badge">ID · '+esc(id)+'</span><h3>'+esc(a.name)+'</h3>'+
+      '<div class="meta">'+p.members.length+' Personen · '+p.rounds.length+' Runde(n)<br>Erstellt am '+fmtTime(a.createdAt)+'</div>';
+    card.addEventListener('click',function(){ askLogin(id); });
+    g.appendChild(card);
+  });
+}
+
+/* SECTION: create & login */
+$('btnCreate').addEventListener('click',function(){
+  openModal('Neues Bewertungssystem anlegen',
+    '<div class="field"><label>System-ID (eindeutig, dient zum Anmelden)</label><input id="fId" maxlength="24" placeholder="z. B. maedchen2026"></div>'+
+    '<div class="field"><label>Name des Systems</label><input id="fName" maxlength="24" placeholder="z. B. Jungs-Bewertung"></div>'+
+    '<div class="field"><label>Passwort</label><input id="fPwd" type="password" maxlength="24" placeholder="darf mit anderen Systemen identisch sein"></div>'+
+    '<div class="hint">Die ID darf auf diesem Gerät kein zweites Mal vergeben werden; Passwörter dürfen sich wiederholen. Daten bleiben nur in diesem Browser.</div>',
+    function(){
+      var id=$('fId').value.trim(), name=$('fName').value.trim(), pwd=$('fPwd').value;
+      if(!id){ $('mErr').textContent='Bitte eine ID eingeben.'; return; }
+      if(!/^[A-Za-z0-9_\u4e00-\u9fa5äöüßÄÖÜ-]{2,24}$/.test(id)){ $('mErr').textContent='ID: 2–24 Zeichen (Buchstaben, Zahlen, _ oder -).'; return; }
+      if(!name){ $('mErr').textContent='Bitte einen Namen eingeben.'; return; }
+      if(pwd.length<4){ $('mErr').textContent='Das Passwort braucht mindestens 4 Zeichen.'; return; }
+      if(db.accounts[id]){ $('mErr').textContent='Diese ID existiert bereits – bitte eine andere wählen (IDs dürfen nicht doppelt vorkommen).'; return; }
+      db.accounts[id]={id:id,pwd:pwd,name:name,createdAt:Date.now()};
+      projOf(id);
+      saveDB(); closeModal(); enter(id);
+      toast('System „'+name+'“ angelegt – du bist angemeldet.');
+    });
+});
+function askLogin(id){
+  openModal('Anmelden: '+db.accounts[id].name,
+    '<div class="field"><label>Passwort</label><input id="fPwd" type="password" maxlength="24" placeholder="Passwort eingeben"></div>'+
+    '<div class="hint">ID: '+esc(id)+'</div>',
+    function(){
+      if($('fPwd').value!==db.accounts[id].pwd){ $('mErr').textContent='Passwort ist falsch.'; return; }
+      closeModal(); enter(id); toast('Angemeldet bei „'+db.accounts[id].name+'“');
+    });
+}
+
+/* SECTION: workspace switch */
+function enter(id){ curId=id; localStorage.setItem(SESSION_KEY,id); $('viewHome').classList.add('hidden');
+  $('viewApp').classList.remove('hidden'); syncChip(); switchTab('list'); }
+function leave(){ curId=''; localStorage.removeItem(SESSION_KEY); $('viewApp').classList.add('hidden');
+  $('viewHome').classList.remove('hidden'); $('userChip').classList.add('hidden'); renderHome(); }
+function syncChip(){
+  var c=$('userChip'); c.classList.remove('hidden');
+  var a=db.accounts[curId];
+  c.innerHTML='<b style="color:var(--ink)">'+esc(a.name)+'</b> · '+esc(a.id)+
+    ' <button class="btn btn-ghost btn-sm" id="btnLogout">Abmelden</button>';
+  $('btnLogout').addEventListener('click',leave);
+}
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){ switchTab(t.getAttribute('data-tab')); });
+});
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('on',t.getAttribute('data-tab')===name); });
+  ['list','score','stat','data'].forEach(function(k){ $('tab-'+k).classList.toggle('hidden',k!==name); });
+  if(name==='list') renderMembers();
+  if(name==='score') renderScore();
+  if(name==='stat') renderStats();
+}
+
+/* SECTION: members */
+function renderMembers(){
+  var p=proj(), box=$('memberList'); box.innerHTML='';
+  $('memberEmpty').classList.toggle('hidden',p.members.length>0);
+  p.members.forEach(function(m,i){
+    var row=document.createElement('div'); row.className='mrow';
+    row.innerHTML='<div class="avatar">'+esc(m.name.slice(0,1))+'</div>'+
+      '<div class="nm">'+esc(m.name)+'<div class="nt">'+esc(m.note||'')+'</div></div>'+
+      '<div class="acts"><button class="btn btn-ghost btn-sm" data-a="edit">Umbenennen</button>'+
+      '<button class="btn btn-danger btn-sm" data-a="del">Löschen</button></div>';
+    row.querySelector('[data-a=edit]').addEventListener('click',function(){
+      openModal('Namen ändern',
+        '<div class="field"><label>Name</label><input id="fName" maxlength="24" value="'+esc(m.name)+'"></div>'+
+        '<div class="field"><label>Notiz</label><input id="fNote" maxlength="30" value="'+esc(m.note||'')+'"></div>',
+        function(){
+          var v=$('fName').value.trim(); if(!v){ $('mErr').textContent='Der Name darf nicht leer sein.'; return; }
+          m.name=v; m.note=$('fNote').value.trim(); saveDB(); closeModal(); renderMembers(); toast('Gespeichert.');
+        });
+    });
+    row.querySelector('[data-a=del]').addEventListener('click',function(){
+      openModal('Person löschen',
+        '<p>„'+esc(m.name)+'“ wirklich aus der Liste entfernen? Alle bisherigen Bewertungen dieser Person werden dabei mit gelöscht.</p>',
+        function(){
+          p.members.splice(i,1);
+          p.rounds.forEach(function(r){ delete r.scores[m.id]; });
+          saveDB(); closeModal(); renderMembers(); toast('Gelöscht.');
+        });
+    });
+    box.appendChild(row);
+  });
+}
+$('btnAddMember').addEventListener('click',function(){
+  var n=$('mName').value.trim(), t=$('mNote').value.trim();
+  if(!n){ toast('Bitte zuerst einen Namen eingeben.',1); return; }
+  var p=proj();
+  if(p.members.some(function(m){return m.name===n;})){ toast('Dieser Name steht schon in der Liste.',1); return; }
+  p.members.push({id:'m'+(p.seq++),name:n,note:t});
+  saveDB(); $('mName').value=''; $('mNote').value=''; renderMembers(); toast('„'+n+'“ hinzugefügt.');
+});
+
+/* SECTION: scoring */
+var editRound=null; /* null = neue Runde; sonst Rundnummer n zum Nachbearbeiten */
+function renderScore(){
+  var p=proj();
+  $('scoreErr').textContent='';
+  var rows=$('scoreRows'); rows.innerHTML='';
+  if(!p.members.length){
+    rows.innerHTML='<div class="hint" style="padding:18px 0">Die Liste ist noch leer – bitte zuerst im Tab „Liste“ Namen hinzufügen.</div>';
+    $('roundTag').textContent='Keine Namen';
+    $('roundHist').innerHTML=''; $('roundCount').textContent='0'; return;
+  }
+  var round=(editRound==null?p.rounds.length+1:editRound);
+  var tag=$('roundTag');
+  tag.textContent='Runde '+round+(editRound!=null?' (in Bearbeitung)':'');
+  var preset={};
+  if(editRound!=null){ p.rounds.forEach(function(r){ if(r.n===editRound) preset=r.scores; }); }
+  rows.innerHTML='';
+  p.members.forEach(function(m){
+    var v=preset[m.id]; if(v==null) v='';
+    var row=document.createElement('div'); row.className='srow'; row.setAttribute('data-mid',m.id);
+    row.innerHTML='<div class="nm"><span>'+esc(m.name)+'</span></div>'+
+      '<div><input type="range" min="0" max="10" step="0.5" value="'+(v===''?0:v)+'">'+
+      '<div class="scale"><i>0</i><i>5</i><i>10</i></div></div>'+
+      '<div class="num"><input type="number" min="0" max="10" step="0.5" value="'+(v===''?'':v)+'" placeholder="–"></div>';
+    var rg=row.querySelector('input[type=range]'), num=row.querySelector('input[type=number]');
+    rg.addEventListener('input',function(){ num.value=rg.value; });
+    num.addEventListener('input',function(){
+      var x=parseFloat(num.value);
+      if(!isNaN(x)){ x=Math.min(10,Math.max(0,snap5(x))); rg.value=x; }
+    });
+    num.addEventListener('blur',function(){
+      if(num.value!==''){ var x=parseFloat(num.value); if(isNaN(x))x=0;
+        x=Math.min(10,Math.max(0,snap5(x))); num.value=x; rg.value=x; }
+    });
+    rows.appendChild(row);
+  });
+  renderRoundHist();
+}
+function renderRoundHist(){
+  var p=proj(); $('roundCount').textContent=p.rounds.length;
+  var box=$('roundHist'); box.innerHTML='';
+  p.rounds.slice().sort(function(a,b){return b.n-a.n;}).forEach(function(r){
+    var cnt=Object.keys(r.scores).length;
+    var chip=document.createElement('div'); chip.className='hchip';
+    chip.innerHTML='<b>Runde '+r.n+'</b><span>'+fmtTime(r.ts)+' · '+cnt+' Personen</span>';
+    var b=document.createElement('button'); b.className='btn btn-ghost btn-sm'; b.textContent='Bearbeiten';
+    b.addEventListener('click',function(){ editRound=r.n; renderScore(); toast('Runde '+r.n+' wird bearbeitet – Speichern überschreibt sie.'); });
+    chip.appendChild(b); box.appendChild(chip);
+  });
+}
+$('btnClearScores').addEventListener('click',function(){ editRound=null; renderScore(); toast('Neue Runde vorbereitet.'); });
+$('btnSubmitScore').addEventListener('click',function(){
+  var p=proj(), rows=$('scoreRows').children, scores={}, missing=0;
+  for(var i=0;i<rows.length;i++){
+    var mid=rows[i].getAttribute('data-mid');
+    if(!mid) continue;
+    var num=rows[i].querySelector('input[type=number]');
+    if(num.value===''){ missing++; continue; }
+    scores[mid]=Math.min(10,Math.max(0,snap5(parseFloat(num.value)||0)));
+  }
+  if(missing){ $('scoreErr').textContent='Es fehlen noch '+missing+' Bewertung(en) – bitte alle ausfüllen.'; return; }
+  if(!Object.keys(scores).length){ $('scoreErr').textContent='Keine bewertbaren Namen in der Liste.'; return; }
+  $('scoreErr').textContent='';
+  if(editRound!=null){
+    p.rounds.forEach(function(r){ if(r.n===editRound) r.scores=scores; });
+    toast('Runde '+editRound+' aktualisiert.'); editRound=null;
+  }else{
+    var n=p.rounds.length+1;
+    p.rounds.push({n:n,ts:Date.now(),scores:scores});
+    toast('Runde '+n+' gespeichert.');
+  }
+  saveDB(); renderScore();
+});
+
+/* SECTION: statistics */
+function calcStats(){
+  var p=proj(), by={};
+  p.members.forEach(function(m){ by[m.id]={name:m.name,list:[]}; });
+  p.rounds.slice().sort(function(a,b){return a.n-b.n;}).forEach(function(r){
+    for(var mid in r.scores){ if(by[mid]) by[mid].list.push({n:r.n,v:r.scores[mid]}); }
+  });
+  var out=[];
+  for(var mid in by){
+    var o=by[mid], vs=o.list.map(function(x){return x.v;});
+    var s={id:mid,name:o.name,count:vs.length,records:o.list};
+    if(vs.length){
+      var sum=0; vs.forEach(function(v){sum+=v;});
+      s.avg=snap5(sum/vs.length);
+      s.last=vs[vs.length-1];
+      s.max=Math.max.apply(null,vs);
+      s.min=Math.min.apply(null,vs);
+    }
+    out.push(s);
+  }
+  out.sort(function(a,b){ return (b.avg||-1)-(a.avg||-1); });
+  return {rows:out,rounds:p.rounds.length};
+}
+function renderStats(){
+  var st=calcStats(), body=$('statBody'), cards=$('statCards');
+  var withScore=st.rows.filter(function(r){return r.count>0;});
+  $('statEmpty').classList.toggle('hidden',withScore.length>0);
+  var p=proj();
+  var totalRec=0; st.rows.forEach(function(r){totalRec+=r.count;});
+  var overall=0,cnt=0; withScore.forEach(function(r){overall+=r.avg;cnt++;});
+  cards.innerHTML=
+    '<div class="stat"><b>'+p.members.length+'</b><i>Personen</i></div>'+
+    '<div class="stat"><b>'+st.rounds+'</b><i>Runden</i></div>'+
+    '<div class="stat"><b>'+totalRec+'</b><i>Bewertungen</i></div>'+
+    '<div class="stat"><b>'+(cnt?fmtScore(snap5(overall/cnt)):'–')+'</b><i>Gesamt-Ø</i></div>';
+  body.innerHTML='';
+  st.rows.forEach(function(r){
+    var tr=document.createElement('tr');
+    var rec=r.records.map(function(x){return 'R'+x.n+': '+fmtScore(x.v);}).join(' · ')||'–';
+    if(r.count){
+      tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td>'+r.count+'</td><td class="best">'+fmtScore(r.avg)+
+        '</td><td>'+fmtScore(r.last)+'</td><td>'+fmtScore(r.max)+'</td><td>'+fmtScore(r.min)+'</td><td class="rec">'+esc(rec)+'</td>';
+    }else{
+      tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td colspan="5" style="color:var(--muted)">noch nicht bewertet</td><td class="rec">–</td>';
+    }
+    body.appendChild(tr);
+  });
+}
+
+/* SECTION: excel export */
+function xesc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cell(v,type){ return '<Cell><Data ss:Type="'+(type||'String')+'">'+xesc(v)+'</Data></Cell>'; }
+function rrow(cells){ return '<Row>'+cells.join('')+'</Row>'; }
+$('btnExport').addEventListener('click',function(){
+  var p=proj(), st=calcStats(), a=db.accounts[curId];
+  var names='<Worksheet ss:Name="Liste"><Table>'+
+    rrow([cell('Name'),cell('Notiz')])+
+    p.members.map(function(m){return rrow([cell(m.name),cell(m.note||'')]);}).join('')+
+    '</Table></Worksheet>';
+  var detail='<Worksheet ss:Name="Bewertungen"><Table>'+
+    rrow([cell('Runde'),cell('Zeitpunkt'),cell('Name'),cell('Punkte','Number')])+
+    p.rounds.slice().sort(function(x,y){return x.n-y.n;}).map(function(r){
+      return p.members.map(function(m){
+        return r.scores[m.id]==null?'':rrow([cell('Runde '+r.n),cell(fmtTime(r.ts)),cell(m.name),cell(r.scores[m.id],'Number')]);
+      }).join('');
+    }).join('')+
+    '</Table></Worksheet>';
+  var sum='<Worksheet ss:Name="Statistik"><Table>'+
+    rrow([cell('Name'),cell('Anzahl'),cell('Durchschnitt'),cell('Letzte'),cell('Max'),cell('Min'),cell('Alle Runden')])+
+    st.rows.map(function(r){
+      var rec=r.records.map(function(x){return 'Runde '+x.n+': '+fmtScore(x.v);}).join(' · ');
+      return rrow([cell(r.name),cell(r.count,'Number'),
+        cell(r.count?fmtScore(r.avg):''),cell(r.count?fmtScore(r.last):''),
+        cell(r.count?fmtScore(r.max):''),cell(r.count?fmtScore(r.min):''),
+        cell(rec)]);
+    }).join('')+
+    '</Table></Worksheet>';
+  var xml='<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n'+
+    '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'+
+    sum+detail+names+'</Workbook>';
+  var blob=new Blob(['\uFEFF'+xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  var d=new Date(); function z(n){return (n<10?'0':'')+n;}
+  var link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download='Bewertungsergebnisse_'+a.name+'_'+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'.xls';
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  setTimeout(function(){URL.revokeObjectURL(link.href);},4000);
+  toast('Excel wird heruntergeladen – mit Statistik, Bewertungen und Liste.');
+});
+
+/* SECTION: project management */
+$('btnRename').addEventListener('click',function(){
+  openModal('System umbenennen',
+    '<div class="field"><label>Neuer Name</label><input id="fName" maxlength="24" value="'+esc(db.accounts[curId].name)+'"></div>',
+    function(){
+      var v=$('fName').value.trim(); if(!v){ $('mErr').textContent='Der Name darf nicht leer sein.'; return; }
+      db.accounts[curId].name=v; saveDB(); closeModal(); syncChip(); toast('Umbenannt in „'+v+'“');
+    });
+});
+$('btnDelProj').addEventListener('click',function(){
+  openModal('System löschen',
+    '<p>Alle Namen und Bewertungen von „'+esc(db.accounts[curId].name)+'“ werden dauerhaft gelöscht.</p>'+
+    '<div class="field" style="margin-top:12px"><label>Zur Bestätigung das Passwort eingeben</label><input id="fPwd" type="password"></div>',
+    function(){
+      if($('fPwd').value!==db.accounts[curId].pwd){ $('mErr').textContent='Passwort ist falsch.'; return; }
+      delete db.accounts[curId]; delete db.projects[curId];
+      saveDB(); closeModal(); leave(); toast('System gelöscht.');
+    });
+});
+
+/* SECTION: boot */
+if(curId){ enter(curId); } else { renderHome(); }
+</script>
+</body>
+</html>
