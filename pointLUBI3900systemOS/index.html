@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bewertungssystem · Mehrere Bewertungsrunden mit Statistik</title>
+<title>Bewertungssystem · Cloud · Privat &amp; Geteilt (anonym)</title>
 <style>
 /* SECTION: base */
 :root{
@@ -17,9 +17,11 @@ html{-webkit-text-size-adjust:100%}
 body{font-family:"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;
   background:linear-gradient(180deg,#fdf3fa 0%,var(--bg) 260px);color:var(--ink);min-height:100vh}
 button{font:inherit;cursor:pointer;border:0}
-input{font:inherit}
+input,select{font:inherit}
 .hidden{display:none!important}
 .wrap{max-width:960px;margin:0 auto;padding:20px 16px 64px}
+.spin{color:var(--muted);padding:18px 4px;font-size:14px}
+.btn:disabled{opacity:.55;cursor:wait}
 
 /* SECTION: header */
 .apphead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
@@ -39,10 +41,12 @@ input{font:inherit}
 .btn-sm{padding:7px 13px;font-size:13px;border-radius:10px}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-.field input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;background:#fff;outline:none}
-.field input:focus{border-color:var(--brand)}
+.field input,.field select{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;background:#fff;outline:none}
+.field input:focus,.field select:focus{border-color:var(--brand)}
 .hint{font-size:12px;color:var(--muted);margin-top:4px}
 .err{font-size:13px;color:var(--warn);margin-top:8px;min-height:18px}
+.toggle{display:flex;align-items:center;gap:10px;padding:10px 0}
+.toggle input{width:18px;height:18px;accent-color:var(--brand)}
 
 /* SECTION: home cards */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
@@ -52,10 +56,10 @@ input{font:inherit}
 .pcard h3{font-size:17px}
 .pcard .meta{font-size:12.5px;color:var(--muted);line-height:1.7}
 .pcard .badge{align-self:flex-start;font-size:11.5px;color:var(--brand);background:#f6ebfb;border-radius:999px;padding:3px 10px}
-.newcard{border:2px dashed #d9c6e6;border-radius:16px;display:grid;place-items:center;color:var(--brand);
-  font-weight:600;min-height:132px;background:rgba(255,255,255,.5)}
+.pcard .badge.pub{color:#fff;background:linear-gradient(135deg,var(--ok),var(--accent))}
 .emptybox{text-align:center;color:var(--muted);padding:44px 16px;background:var(--card);border:1px solid var(--line);border-radius:16px}
 .emptybox .big{font-size:34px;margin-bottom:8px}
+.section-title{font-size:15px;font-weight:700;margin:22px 0 10px;color:var(--ink)}
 
 /* SECTION: tabs */
 .tabs{display:flex;gap:6px;background:#f2e8f5;border-radius:14px;padding:5px;margin-bottom:18px;overflow-x:auto}
@@ -74,6 +78,7 @@ input{font:inherit}
 .mrow .acts{display:flex;gap:6px}
 .avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;flex:none;
   background:linear-gradient(135deg,var(--accent),var(--brand))}
+.avatar.alt{background:linear-gradient(135deg,var(--ok),var(--accent))}
 
 /* SECTION: scoring */
 .roundtag{display:inline-block;font-size:12.5px;font-weight:700;color:#fff;border-radius:999px;padding:4px 14px;
@@ -105,7 +110,7 @@ td.rec{white-space:normal;text-align:left;font-size:12.5px;color:var(--muted);mi
 
 /* SECTION: modal & toast */
 .mask{position:fixed;inset:0;background:rgba(45,30,60,.42);display:grid;place-items:center;padding:18px;z-index:50}
-.modal{background:#fff;border-radius:18px;padding:22px;width:min(430px,100%);box-shadow:0 20px 60px rgba(60,30,90,.3)}
+.modal{background:#fff;border-radius:18px;padding:22px;width:min(430px,100%);box-shadow:0 20px 60px rgba(60,30,90,.3);max-height:88vh;overflow:auto}
 .modal h3{font-size:17px;margin-bottom:14px}
 .modal .foot{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
 #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#3a2b52;color:#fff;
@@ -125,51 +130,60 @@ td.rec{white-space:normal;text-align:left;font-size:12.5px;color:var(--muted);mi
 
   <!-- SECTION: header markup -->
   <header class="apphead">
-    <div class="logo"><div class="mark">★</div>
-      <div>Bewertungssystem<small>Eigene Listen · mehrere Runden · automatische Statistik</small></div>
+    <div class="logo"><div class="mark">☁</div>
+      <div>Bewertungssystem · Cloud<small>Privat &amp; geteilt (anonym) · unbegrenzt Systeme</small></div>
     </div>
     <div id="userChip" class="userchip hidden"></div>
   </header>
 
   <!-- SECTION: view home -->
   <main id="viewHome">
-    <div class="rowbar" style="justify-content:space-between;margin-bottom:14px">
-      <h2 style="font-size:17px">Meine Bewertungssysteme</h2>
-      <button class="btn btn-primary" id="btnCreate">＋ Neues System</button>
+    <div class="rowbar" style="justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap">
+      <h2 style="font-size:17px">Meine privaten Systeme</h2>
+      <div class="rowbar">
+        <button class="btn btn-ghost" id="btnLogin">Bei bestehendem System anmelden</button>
+        <button class="btn btn-primary" id="btnCreate">＋ Neues System erstellen</button>
+      </div>
     </div>
     <div id="projGrid" class="grid"></div>
     <div id="homeEmpty" class="emptybox hidden">
       <div class="big">🌸</div>
-      <p>Noch kein Bewertungssystem vorhanden – oben rechts das erste anlegen.</p>
-      <p class="hint">Jedes System hat eine eindeutige ID und ein Passwort. Systeme sind getrennt und stören sich nicht gegenseitig.</p>
+      <p>Noch kein privates System – oben rechts „Neues System erstellen“.</p>
+      <p class="hint">Private Systeme brauchen Login mit Konto + Passwort. Du kannst beim Erstellen auch „Geteilt (anonym)“ wählen – dann erscheint das System unten in der öffentlichen Liste.</p>
     </div>
-    <p class="hint" style="margin-top:16px;text-align:center">Alle Daten bleiben lokal in diesem Browser (ohne Netzverbindung). Bei Geräte Wechsel den Excel-Export nutzen.</p>
+
+    <div class="section-title">Öffentliche Abstimmungen (geteilt &amp; anonym)</div>
+    <p class="hint" style="margin-bottom:10px">Hier siehst du alle geteilten Systeme. Jeder kann mit einem Nickname teilnehmen – wer was abgestimmt hat, sieht niemand (auch nicht der Ersteller).</p>
+    <div id="pubGrid" class="grid"></div>
+    <div id="pubEmpty" class="hint">Noch keine öffentliche Abstimmung vorhanden.</div>
+
+    <p class="hint" style="margin-top:22px;text-align:center">Daten liegen in deiner Supabase-Cloud – jedes Gerät mit dieser Seite und Internet sieht denselben Stand.</p>
   </main>
 
   <!-- SECTION: view app -->
   <main id="viewApp" class="hidden">
-    <div class="tabs">
+    <div class="tabs" id="appTabs">
       <button class="tab on" data-tab="list">Liste</button>
       <button class="tab" data-tab="score">Bewerten</button>
       <button class="tab" data-tab="stat">Statistik</button>
-      <button class="tab" data-tab="data">Daten</button>
+      <button class="tab" data-tab="data">Konto &amp; Daten</button>
     </div>
 
     <section id="tab-list" class="panel">
       <h2>Zu bewertende Personen</h2>
-      <p class="sub">Namen hinzufügen, die bewertet werden sollen – Umbenennen und Löschen jederzeit möglich.</p>
-      <div class="rowbar">
+      <p class="sub" id="listSub">Namen hinzufügen, die bewertet werden sollen.</p>
+      <div class="rowbar" id="memberBar">
         <input id="mName" placeholder="Name / Spitzname" style="flex:1;min-width:150px;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px">
         <input id="mNote" placeholder="Notiz (optional)" style="flex:1;min-width:130px;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px">
         <button class="btn btn-primary" id="btnAddMember">Hinzufügen</button>
       </div>
       <div id="memberList" class="mlist"></div>
-      <div id="memberEmpty" class="hint" style="margin-top:14px">Die Liste ist noch leer – bitte zuerst Namen hinzufügen, dann kann bewertet werden.</div>
+      <div id="memberEmpty" class="hint" style="margin-top:14px">Die Liste ist noch leer.</div>
     </section>
 
     <section id="tab-score" class="panel hidden">
       <h2>Bewertung abgeben</h2>
-      <p class="sub">0–10 Punkte, in 0,5er-Schritten. Regler benutzen oder direkt eingeben.</p>
+      <p class="sub" id="scoreSub">0–10 Punkte, in 0,5er-Schritten.</p>
       <div id="roundWrap">
         <span class="roundtag" id="roundTag">Runde 1</span>
         <div id="scoreRows"></div>
@@ -179,29 +193,37 @@ td.rec{white-space:normal;text-align:left;font-size:12.5px;color:var(--muted);mi
         </div>
         <div class="err" id="scoreErr"></div>
       </div>
-      <h2 style="margin-top:22px">Bisherige Runden</h2>
-      <p class="sub">Es gibt <b id="roundCount">0</b> gespeicherte Runde(n) – zum Nachbearbeiten öffnen.</p>
+      <h2 style="margin-top:22px" id="histTitle">Bisherige Runden</h2>
+      <p class="sub" id="histSub">Zum Nachbearbeiten öffnen oder neu laden.</p>
+      <div class="rowbar"><button class="btn btn-ghost btn-sm" id="btnRefresh">↻ Daten neu laden</button></div>
       <div id="roundHist" class="hist"></div>
     </section>
 
     <section id="tab-stat" class="panel hidden">
       <h2>Statistik</h2>
-      <p class="sub">Durchschnitt, letzte, höchste und niedrigste Bewertung – jeweils auf 0,5-Punkte gerundet.</p>
+      <p class="sub" id="statSub">Durchschnitt, letzte, höchste und niedrigste Bewertung – jeweils auf 0,5-Punkte gerundet.</p>
       <div class="statcards" id="statCards"></div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th style="text-align:left">Name</th><th>Anzahl</th><th>Ø</th><th>Letzte</th><th>Max</th><th>Min</th><th>Alle Runden</th></tr></thead>
+          <thead id="statHead"><tr><th style="text-align:left">Name</th><th>Anzahl</th><th>Ø</th><th>Letzte</th><th>Max</th><th>Min</th><th>Alle Runden</th></tr></thead>
           <tbody id="statBody"></tbody>
         </table>
       </div>
-      <div id="statEmpty" class="hint" style="margin-top:12px">Noch keine Bewertung gespeichert – bitte zuerst im Tab „Bewerten“ eine Runde speichern.</div>
+      <div id="statEmpty" class="hint" style="margin-top:12px">Noch keine Bewertung gespeichert.</div>
     </section>
 
     <section id="tab-data" class="panel hidden">
-      <h2>Datenverwaltung</h2>
+      <h2 id="dataTitle">Login-Konten dieses Systems</h2>
+      <p class="sub" id="dataSub">Jede Person bekommt ein eigenes Konto (Kontoname + Passwort). Nur das Gründer-Konto kann Konten verwalten.</p>
+      <div id="acctList" class="mlist" style="margin-top:0"></div>
+      <div class="rowbar" style="margin-top:12px" id="acctAdminRow">
+        <button class="btn btn-primary btn-sm" id="btnAddAcct">＋ Konto hinzufügen</button>
+      </div>
+
+      <h2 style="margin-top:26px">Datenverwaltung</h2>
       <p class="sub">Exportieren, umbenennen und Löschen der Daten dieses Systems.</p>
       <div class="rowbar" style="flex-direction:column;align-items:stretch;gap:12px">
-        <button class="btn btn-primary" id="btnExport" data-primary-action="export-xls">Excel exportieren (.xls, direkt öffenbar)</button>
+        <button class="btn btn-primary" id="btnExport" data-primary-action="export-xls">Excel exportieren (.xls)</button>
         <button class="btn btn-ghost" id="btnRename">System umbenennen</button>
         <button class="btn btn-danger" id="btnDelProj">Alle Daten dieses Systems löschen</button>
       </div>
@@ -224,97 +246,270 @@ td.rec{white-space:normal;text-align:left;font-size:12.5px;color:var(--muted);mi
 <div id="toast"></div>
 
 <script>
-/* SECTION: storage */
+/* SECTION: supabase config */
 'use strict';
-var DB_KEY='ratingSystem.local.v1', SESSION_KEY='ratingSystem.local.session.v1';
-function loadDB(){ try{ var d=JSON.parse(localStorage.getItem(DB_KEY)); return (d&&d.accounts&&d.projects)?d:{accounts:{},projects:{}}; }catch(e){ return {accounts:{},projects:{}}; } }
-function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-var db=loadDB();
-var curId=localStorage.getItem(SESSION_KEY)||'';
-if(curId && !db.accounts[curId]) curId='';
+var SUPA_URL='https://nisoedxwduhspfoktjvf.supabase.co';
+var SUPA_KEY='sb_publi…k3Sn';
+var BASE=SUPA_URL+'/rest/v1/';
+var HDR={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+var SESSION_KEY='ratin…e.v3';
 
-function projOf(id){ if(!db.projects[id]) db.projects[id]={members:[],rounds:[],seq:1}; return db.projects[id]; }
-function proj(){ return projOf(curId); }
-/* auf das nächstliegende 0,5-Raster runden: 0,2→0 · 0,4→0,5 · 0,75→1,0 */
-function snap5(x){ return Math.round(x*2)/2; }
-/* deutsche Schreibweise mit Komma für Anzeigen */
-function fmtScore(x){ return String(x).replace('.', ','); }
+/* SECTION: api helpers */
+async function api(path,opts){
+  opts=opts||{}; opts.headers=Object.assign({},HDR,opts.headers||{});
+  var res;
+  try{ res=await fetch(BASE+path,opts); }
+  catch(e){ throw new Error('Netzwerkfehler – keine Verbindung zur Cloud. Bitte Internet prüfen.'); }
+  if(res.status===409) throw Object.assign(new Error('Duplikat'),{dup:true,status:409});
+  if(!res.ok){
+    var t=''; try{ var j=await res.json(); t=j.message||''; }catch(e){}
+    throw new Error('Cloud-Fehler '+res.status+(t?': '+t:''));
+  }
+  if(res.status===204) return null;
+  return res.json();
+}
+function post(path,body,repr){
+  return api(path,{method:'POST',headers:{'Prefer':repr?'return=representation':'return=minimal'},body:JSON.stringify(body)});
+}
+function patch(path,body){ return api(path,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify(body)}); }
+function del(path){ return api(path,{method:'DELETE'}); }
+
+/* SECTION: state */
+var systems=[], curSid=null, curUser=null, curNick=null, isShared=false;
+var users=[], members=[], rounds=[], nicks=[];
+var busy=false;
+
+/* SECTION: password hash */
+async function hashPw(pw){
+  try{
+    if(window.crypto&&crypto.subtle){
+      var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('rating::'+pw));
+      return Array.prototype.map.call(new Uint8Array(b),function(x){return ('0'+x.toString(16)).slice(-2);}).join('');
+    }
+  }catch(e){}
+  var h=5381,s='rating::'+pw;
+  for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}
+  return 'x'+h.toString(16);
+}
 
 /* SECTION: utils */
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function $(id){ return document.getElementById(id); }
 var toastTimer=null;
 function toast(msg,bad){ var t=$('toast'); t.textContent=msg; t.className='show'+(bad?' bad':'');
-  clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.className='';},2400); }
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.className='';},2600); }
 function fmtTime(ts){ var d=new Date(ts); function p(n){return (n<10?'0':'')+n;}
   return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+function snap5(x){ return Math.round(x*2)/2; }
+function fmtScore(x){ return String(x).replace('.', ','); }
+function guard(fn){ return async function(){ if(busy) return; busy=true; setBusy(true);
+  try{ await fn(); }catch(e){ toast(e.message||'Fehler',1); }finally{ busy=false; setBusy(false); } }; }
+function setBusy(b){ document.querySelectorAll('.btn').forEach(function(x){x.disabled=b;}); }
 
 /* SECTION: modal */
 var modalOk=null;
 function openModal(title,bodyHTML,onOk){ $('mTitle').textContent=title; $('mBody').innerHTML=bodyHTML;
   $('mErr').textContent=''; modalOk=onOk; $('modalMask').classList.remove('hidden');
-  var fi=$('mBody').querySelector('input'); if(fi) fi.focus(); }
+  var fi=$('mBody').querySelector('input,select'); if(fi) fi.focus(); }
 function closeModal(){ $('modalMask').classList.add('hidden'); modalOk=null; }
 $('mCancel').addEventListener('click',closeModal);
 $('mOk').addEventListener('click',function(){ if(modalOk) modalOk(); });
 $('modalMask').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
 
 /* SECTION: home render */
+async function loadSystems(){
+  $('projGrid').innerHTML='<div class="spin">Lade Systeme aus der Cloud…</div>';
+  $('pubGrid').innerHTML='<div class="spin">Lade öffentliche Abstimmungen…</div>';
+  systems=await api('sys?select=*&order=created_at.asc');
+  renderHome();
+}
 function renderHome(){
-  var ids=Object.keys(db.accounts);
-  $('homeEmpty').classList.toggle('hidden',ids.length>0);
+  var priv=systems.filter(function(s){return !s.shared;});
+  var pub=systems.filter(function(s){return s.shared;});
+  $('homeEmpty').classList.toggle('hidden',priv.length>0);
   var g=$('projGrid'); g.innerHTML='';
-  ids.forEach(function(id){
-    var a=db.accounts[id], p=db.projects[id]||{members:[],rounds:[]};
+  priv.forEach(function(s){
     var card=document.createElement('div'); card.className='pcard';
-    card.innerHTML='<span class="badge">ID · '+esc(id)+'</span><h3>'+esc(a.name)+'</h3>'+
-      '<div class="meta">'+p.members.length+' Personen · '+p.rounds.length+' Runde(n)<br>Erstellt am '+fmtTime(a.createdAt)+'</div>';
-    card.addEventListener('click',function(){ askLogin(id); });
+    card.innerHTML='<span class="badge">Privat</span><h3>'+esc(s.name)+'</h3>'+
+      '<div class="meta">Gründer: '+esc(s.owner_uid)+'<br>Erstellt am '+fmtTime(s.created_at)+'</div>';
+    card.addEventListener('click',function(){ askLogin(s.sid); });
     g.appendChild(card);
+  });
+  $('pubEmpty').classList.toggle('hidden',pub.length>0);
+  var pg=$('pubGrid'); pg.innerHTML='';
+  pub.forEach(function(s){
+    var card=document.createElement('div'); card.className='pcard';
+    card.innerHTML='<span class="badge pub">Öffentlich · anonym</span><h3>'+esc(s.name)+'</h3>'+
+      '<div class="meta">Erstellt am '+fmtTime(s.created_at)+'<br>Klicke zum Abstimmen (Nickname erforderlich)</div>';
+    card.addEventListener('click',function(){ enterShared(s.sid); });
+    pg.appendChild(card);
   });
 }
 
-/* SECTION: create & login */
+/* SECTION: create system (private or shared) */
 $('btnCreate').addEventListener('click',function(){
-  openModal('Neues Bewertungssystem anlegen',
-    '<div class="field"><label>System-ID (eindeutig, dient zum Anmelden)</label><input id="fId" maxlength="24" placeholder="z. B. maedchen2026"></div>'+
+  openModal('Neues Bewertungssystem',
+    '<div class="field"><label>System-ID (weltweit eindeutig)</label><input id="fId" maxlength="24" placeholder="z. B. maedchen2026"></div>'+
     '<div class="field"><label>Name des Systems</label><input id="fName" maxlength="24" placeholder="z. B. Jungs-Bewertung"></div>'+
-    '<div class="field"><label>Passwort</label><input id="fPwd" type="password" maxlength="24" placeholder="darf mit anderen Systemen identisch sein"></div>'+
-    '<div class="hint">Die ID darf auf diesem Gerät kein zweites Mal vergeben werden; Passwörter dürfen sich wiederholen. Daten bleiben nur in diesem Browser.</div>',
-    function(){
-      var id=$('fId').value.trim(), name=$('fName').value.trim(), pwd=$('fPwd').value;
-      if(!id){ $('mErr').textContent='Bitte eine ID eingeben.'; return; }
-      if(!/^[A-Za-z0-9_\u4e00-\u9fa5äöüßÄÖÜ-]{2,24}$/.test(id)){ $('mErr').textContent='ID: 2–24 Zeichen (Buchstaben, Zahlen, _ oder -).'; return; }
-      if(!name){ $('mErr').textContent='Bitte einen Namen eingeben.'; return; }
-      if(pwd.length<4){ $('mErr').textContent='Das Passwort braucht mindestens 4 Zeichen.'; return; }
-      if(db.accounts[id]){ $('mErr').textContent='Diese ID existiert bereits – bitte eine andere wählen (IDs dürfen nicht doppelt vorkommen).'; return; }
-      db.accounts[id]={id:id,pwd:pwd,name:name,createdAt:Date.now()};
-      projOf(id);
-      saveDB(); closeModal(); enter(id);
-      toast('System „'+name+'“ angelegt – du bist angemeldet.');
-    });
+    '<div class="toggle"><input type="checkbox" id="fShared"><label for="fShared"><b>Geteilt (öffentlich &amp; anonym)</b><br><span class="hint">Erscheint in der öffentlichen Liste. Teilnehmer stimmen mit Nickname ab – wer was gewählt hat, sieht niemand.</span></label></div>'+
+    '<div id="privFields">'+
+      '<div class="field"><label>Dein Kontoname (Gründer)</label><input id="fUid" maxlength="24" placeholder="z. B. luna"></div>'+
+      '<div class="field"><label>Passwort</label><input id="fPwd" type="password" maxlength="24" placeholder="mind. 4 Zeichen"></div>'+
+    '</div>'+
+    '<div class="hint">Geteilt = öffentlich sichtbar &amp; anonym. Privat = nur mit Konto + Passwort zugänglich.</div>',
+    guard(async function(){
+      var id=$('fId').value.trim(), name=$('fName').value.trim(), shared=$('fShared').checked;
+      if(!id){ $('mErr').textContent='Bitte eine System-ID eingeben.'; return; }
+      if(!/^[A-Za-z0-9_\u4e00-\u9fa5äöüßÄÖÜ-]{2,24}$/.test(id)){ $('mErr').textContent='System-ID: 2–24 Zeichen (Buchstaben, Zahlen, _ oder -).'; return; }
+      if(!name){ $('mErr').textContent='Bitte einen Systemnamen eingeben.'; return; }
+      if(systems.some(function(s){return s.sid===id;})){ $('mErr').textContent='Diese System-ID gibt es schon – bitte eine andere wählen.'; return; }
+      if(shared){
+        await post('sys',{sid:id,name:name,owner_uid:'__shared__',shared:true,created_at:Date.now()});
+        closeModal(); await enterShared(id,true);
+        toast('Öffentliche Abstimmung „'+name+'“ erstellt.');
+      }else{
+        var uid=$('fUid').value.trim(), pwd=$('fPwd').value;
+        if(!uid){ $('mErr').textContent='Bitte deinen Kontonamen eingeben.'; return; }
+        if(pwd.length<4){ $('mErr').textContent='Das Passwort braucht mindestens 4 Zeichen.'; return; }
+        var hash=await hashPw(pwd);
+        await post('sys',{sid:id,name:name,owner_uid:uid,shared:false,created_at:Date.now()});
+        await post('usr',{sid:id,uid:uid,pw:hash,owner:true});
+        closeModal(); await enterPrivate(id,uid,hash);
+        toast('Privates System „'+name+'“ erstellt – du bist als „'+uid+'“ angemeldet.');
+      }
+    }));
+  // toggle visibility of private fields
+  setTimeout(function(){
+    var cb=$('fShared'), pf=$('privFields');
+    function upd(){ pf.classList.toggle('hidden',cb.checked); }
+    cb.addEventListener('change',upd); upd();
+  },0);
 });
-function askLogin(id){
-  openModal('Anmelden: '+db.accounts[id].name,
-    '<div class="field"><label>Passwort</label><input id="fPwd" type="password" maxlength="24" placeholder="Passwort eingeben"></div>'+
-    '<div class="hint">ID: '+esc(id)+'</div>',
-    function(){
-      if($('fPwd').value!==db.accounts[id].pwd){ $('mErr').textContent='Passwort ist falsch.'; return; }
-      closeModal(); enter(id); toast('Angemeldet bei „'+db.accounts[id].name+'“');
-    });
+
+/* SECTION: login private system */
+$('btnLogin').addEventListener('click',guard(async function(){
+  if(!systems.length) await loadSystems();
+  var priv=systems.filter(function(s){return !s.shared;});
+  if(!priv.length){ toast('Es existiert noch kein privates System – bitte zuerst eines erstellen.',1); return; }
+  if(priv.length===1){ askLogin(priv[0].sid); return; }
+  var opts=priv.map(function(s){ return '<option value="'+esc(s.sid)+'">'+esc(s.name)+' (ID '+esc(s.sid)+')</option>'; }).join('');
+  openModal('Bei privatem System anmelden',
+    '<div class="field"><label>System wählen</label><select id="fSid">'+opts+'</select></div>',
+    function(){ askLogin($('fSid').value); });
+}));
+async function askLogin(sid){
+  var s=systems.filter(function(x){return x.sid===sid;})[0];
+  var us;
+  try{ us=await api('usr?sid=eq.'+encodeURIComponent(sid)+'&select=*'); }
+  catch(e){ toast(e.message,1); return; }
+  if(!us.length){ toast('Für dieses System existiert noch kein Konto.',1); return; }
+  var opts=us.map(function(u){ return '<option value="'+esc(u.uid)+'">'+esc(u.uid)+(u.owner?' (Gründer)':'')+'</option>'; }).join('');
+  openModal('Anmelden: '+s.name,
+    '<div class="field"><label>Konto wählen</label><select id="fUid">'+opts+'</select></div>'+
+    '<div class="field"><label>Passwort</label><input id="fPwd" type="password" maxlength="24" placeholder="Passwort dieses Kontos"></div>',
+    guard(async function(){
+      var uid=$('fUid').value, hash=await hashPw($('fPwd').value);
+      var u=us.filter(function(x){return x.uid===uid;})[0];
+      if(!u||u.pw!==hash){ $('mErr').textContent='Passwort ist falsch.'; return; }
+      closeModal(); await enterPrivate(sid,uid,hash); toast('Willkommen zurück, '+uid+'!');
+    }));
 }
 
-/* SECTION: workspace switch */
-function enter(id){ curId=id; localStorage.setItem(SESSION_KEY,id); $('viewHome').classList.add('hidden');
-  $('viewApp').classList.remove('hidden'); syncChip(); switchTab('list'); }
-function leave(){ curId=''; localStorage.removeItem(SESSION_KEY); $('viewApp').classList.add('hidden');
-  $('viewHome').classList.remove('hidden'); $('userChip').classList.add('hidden'); renderHome(); }
+/* SECTION: enter shared system (nickname gate) */
+async function enterShared(sid,fresh){
+  curSid=sid; isShared=true; curUser=null; curNick=null;
+  await loadAll();
+  var s=systems.filter(function(x){return x.sid===sid;})[0]||{name:sid};
+  if(fresh===true){
+    // just created → go straight to nickname prompt
+    pickNickname();
+  }else{
+    // check session
+    var sess=null; try{ sess=JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){}
+    if(sess&&sess.sid===sid&&sess.nick){
+      var found=nicks.filter(function(x){return x.name===sess.nick;})[0];
+      if(found&&found.pw===sess.npw){ curNick={name:sess.nick,pw:sess.npw}; showApp(); return; }
+    }
+    pickNickname();
+  }
+}
+function pickNickname(){
+  var opts=nicks.map(function(n){ return '<option value="'+esc(n.name)+'">'+esc(n.name)+'</option>'; }).join('');
+  var hasExisting=nicks.length>0;
+  openModal('Mit Nickname teilnehmen',
+    '<div class="field"><label>Dein Nickname</label><input id="fNick" maxlength="24" placeholder="z. B. Sternchen" list="nickList"></datalist>'+
+    (hasExisting?'<datalist id="nickList">'+opts+'</datalist>':'')+
+    '</div>'+
+    '<div class="field"><label>Passwort für diesen Nickname</label><input id="fPwd" type="password" maxlength="24" placeholder="mind. 4 Zeichen (neu setzen oder bestätigen)"></div>'+
+    '<div class="hint">Neuer Nickname → Passwort wird jetzt festgelegt.<br>Vorhandener Nickname → gib das Passwort ein, das du damals gesetzt hast.</div>',
+    guard(async function(){
+      var nick=$('fNick').value.trim(), pwd=$('fPwd').value;
+      if(!nick){ $('mErr').textContent='Bitte einen Nickname eingeben.'; return; }
+      if(pwd.length<4){ $('mErr').textContent='Das Passwort braucht mindestens 4 Zeichen.'; return; }
+      var hash=await hashPw(pwd);
+      var existing=nicks.filter(function(x){return x.name===nick;})[0];
+      if(existing){
+        if(existing.pw!==hash){ $('mErr').textContent='Passwort stimmt nicht zu diesem Nickname. Tippfehler oder anderer Nickname?'; return; }
+        curNick={name:nick,pw:hash};
+      }else{
+        var created=await post('nick',{sid:curSid,name:nick,pw:hash},true);
+        nicks=nicks.concat(created);
+        curNick={name:nick,pw:hash};
+      }
+      localStorage.setItem(SESSION_KEY,JSON.stringify({sid:curSid,nick:nick,npw:hash}));
+      closeModal(); showApp(); toast('Du bist dabei als „'+nick+'“ (anonym).');
+    }));
+}
+
+/* SECTION: enter private system */
+async function enterPrivate(sid,uid,hash){
+  curSid=sid; isShared=false; curNick=null;
+  await loadAll();
+  curUser=users.filter(function(x){return x.uid===uid;})[0];
+  if(!curUser||curUser.pw!==hash) throw new Error('Konto oder Passwort ungültig.');
+  localStorage.setItem(SESSION_KEY,JSON.stringify({sid:sid,uid:uid,pw:hash}));
+  showApp();
+}
+
+/* SECTION: common show / load */
+async function loadAll(){
+  var e=encodeURIComponent(curSid);
+  users=isShared?[]:await api('usr?sid=eq.'+e+'&select=*');
+  members=await api('mem?sid=eq.'+e+'&select=*&order=mid.asc');
+  rounds=await api('rnd?sid=eq.'+e+'&select=*&order=n.asc,ts.asc');
+  nicks=isShared?await api('nick?sid=eq.'+e+'&select=*'):[];
+}
+function showApp(){
+  $('viewHome').classList.add('hidden'); $('viewApp').classList.remove('hidden');
+  syncChip(); adaptUI(); switchTab('list');
+}
+$('btnRefresh').addEventListener('click',guard(async function(){ await loadAll(); redraw(); toast('Daten aktualisiert.'); }));
+function leave(){ curSid=null; curUser=null; curNick=null; isShared=false; localStorage.removeItem(SESSION_KEY);
+  $('viewApp').classList.add('hidden'); $('viewHome').classList.remove('hidden');
+  $('userChip').classList.add('hidden'); loadSystems(); }
 function syncChip(){
   var c=$('userChip'); c.classList.remove('hidden');
-  var a=db.accounts[curId];
-  c.innerHTML='<b style="color:var(--ink)">'+esc(a.name)+'</b> · '+esc(a.id)+
+  var s=systems.filter(function(x){return x.sid===curSid;})[0]||{name:curSid};
+  var who=isShared?('Nickname: '+esc(curNick.name)+' · anonym'):(esc(curUser.uid));
+  c.innerHTML='<b style="color:var(--ink)">'+esc(s.name)+'</b> · '+who+
     ' <button class="btn btn-ghost btn-sm" id="btnLogout">Abmelden</button>';
   $('btnLogout').addEventListener('click',leave);
+}
+function adaptUI(){
+  // hide admin-only tabs/buttons in shared mode
+  var tabs=document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    if(t.getAttribute('data-tab')==='data') t.classList.toggle('hidden',isShared);
+  });
+  $('memberBar').classList.toggle('hidden',isShared);
+  $('listSub').textContent=isShared?'Diese Liste wurde vom Ersteller festgelegt.':'Namen hinzufügen, die bewertet werden sollen.';
+  $('scoreSub').textContent=isShared?'Deine Stimme ist anonym – niemand sieht, wer was gewählt hat.':'0–10 Punkte, in 0,5er-Schritten.';
+  $('histTitle').textContent=isShared?'Deine bisherigen Stimmen':'Bisherige Runden';
+  $('histSub').textContent=isShared?'Du siehst nur deine eigenen Runden (anonym). Andere sehen nur die Statistik.':'Zum Nachbearbeiten öffnen oder neu laden.';
+  $('statSub').textContent=isShared?'Zusammenfassung aller anonymen Stimmen – Einzeldaten sind nicht sichtbar.':'Durchschnitt, letzte, höchste und niedrigste Bewertung – jeweils auf 0,5-Punkte gerundet.';
+  $('statHead').innerHTML=isShared?
+    '<tr><th style="text-align:left">Name</th><th>Anzahl</th><th>Ø</th><th>Max</th><th>Min</th></tr>':
+    '<tr><th style="text-align:left">Name</th><th>Anzahl</th><th>Ø</th><th>Letzte</th><th>Max</th><th>Min</th><th>Alle Runden</th></tr>';
 }
 document.querySelectorAll('.tab').forEach(function(t){
   t.addEventListener('click',function(){ switchTab(t.getAttribute('data-tab')); });
@@ -325,68 +520,147 @@ function switchTab(name){
   if(name==='list') renderMembers();
   if(name==='score') renderScore();
   if(name==='stat') renderStats();
+  if(name==='data') renderAccounts();
 }
+function redraw(){ renderMembers(); renderScore(); renderStats(); renderAccounts(); }
+
+/* SECTION: accounts (private only) */
+function renderAccounts(){
+  if(isShared){ $('acctList').innerHTML=''; $('acctAdminRow').classList.add('hidden'); return; }
+  var box=$('acctList'); box.innerHTML='';
+  if(!curUser) return;
+  users.forEach(function(a){
+    var row=document.createElement('div'); row.className='mrow';
+    var isMe=(a.uid===curUser.uid);
+    row.innerHTML='<div class="avatar'+(isMe?' alt':'')+'">'+esc(a.uid.slice(0,1))+'</div>'+
+      '<div class="nm">'+esc(a.uid)+(a.owner?'<div class="nt">Gründer-Konto</div>':(isMe?'<div class="nt">Du bist hier angemeldet</div>':''))+'</div>'+
+      '<div class="acts"></div>';
+    var acts=row.querySelector('.acts');
+    if(isMe){
+      var cur=document.createElement('span'); cur.textContent='aktiv';
+      cur.style.cssText='align-self:center;font-size:12px;color:var(--ok);font-weight:700';
+      acts.appendChild(cur);
+    }else if(curUser.owner){
+      var pw=document.createElement('button'); pw.className='btn btn-ghost btn-sm'; pw.textContent='Passwort ändern';
+      pw.addEventListener('click',function(){
+        openModal('Passwort für „'+a.uid+'“ ändern',
+          '<div class="field"><label>Neues Passwort</label><input id="fPwd" type="password" maxlength="24"></div>',
+          guard(async function(){
+            var v=$('fPwd').value; if(v.length<4){ $('mErr').textContent='Mindestens 4 Zeichen.'; return; }
+            var h=await hashPw(v); await patch('usr?id=eq.'+a.id,{pw:h}); a.pw=h;
+            closeModal(); renderAccounts(); toast('Passwort geändert.');
+          }));
+      });
+      var dl=document.createElement('button'); dl.className='btn btn-danger btn-sm'; dl.textContent='Löschen';
+      dl.addEventListener('click',function(){
+        openModal('Konto löschen',
+          '<p>Login-Konto „'+esc(a.uid)+'“ entfernen? Bewertungsrunden bleiben erhalten.</p>',
+          guard(async function(){
+            await del('usr?id=eq.'+a.id); users=users.filter(function(x){return x.id!==a.id;});
+            closeModal(); renderAccounts(); toast('Konto gelöscht.');
+          }));
+      });
+      acts.appendChild(pw); acts.appendChild(dl);
+    }
+    box.appendChild(row);
+  });
+  $('acctAdminRow').classList.toggle('hidden',!curUser.owner);
+  $('btnRename').classList.toggle('hidden',!curUser.owner);
+  $('btnDelProj').classList.toggle('hidden',!curUser.owner);
+}
+$('btnAddAcct').addEventListener('click',function(){
+  openModal('Neues Login-Konto',
+    '<div class="field"><label>Kontoname (in diesem System eindeutig)</label><input id="fUid" maxlength="24" placeholder="z. B. mia"></div>'+
+    '<div class="field"><label>Passwort für dieses Konto</label><input id="fPwd" type="password" maxlength="24" placeholder="mind. 4 Zeichen"></div>',
+    guard(async function(){
+      var uid=$('fUid').value.trim(), pwd=$('fPwd').value;
+      if(!uid){ $('mErr').textContent='Bitte einen Kontonamen eingeben.'; return; }
+      if(pwd.length<4){ $('mErr').textContent='Das Passwort braucht mindestens 4 Zeichen.'; return; }
+      if(users.some(function(x){return x.uid===uid;})){ $('mErr').textContent='Dieser Kontoname existiert in diesem System schon.'; return; }
+      var h=await hashPw(pwd);
+      var created=await post('usr',{sid:curSid,uid:uid,pw:h,owner:false},true);
+      users=users.concat(created);
+      closeModal(); renderAccounts(); toast('Konto „'+uid+'“ angelegt.');
+    }));
+});
 
 /* SECTION: members */
 function renderMembers(){
-  var p=proj(), box=$('memberList'); box.innerHTML='';
-  $('memberEmpty').classList.toggle('hidden',p.members.length>0);
-  p.members.forEach(function(m,i){
+  var box=$('memberList'); box.innerHTML='';
+  $('memberEmpty').classList.toggle('hidden',members.length>0);
+  members.forEach(function(m){
     var row=document.createElement('div'); row.className='mrow';
     row.innerHTML='<div class="avatar">'+esc(m.name.slice(0,1))+'</div>'+
       '<div class="nm">'+esc(m.name)+'<div class="nt">'+esc(m.note||'')+'</div></div>'+
-      '<div class="acts"><button class="btn btn-ghost btn-sm" data-a="edit">Umbenennen</button>'+
-      '<button class="btn btn-danger btn-sm" data-a="del">Löschen</button></div>';
-    row.querySelector('[data-a=edit]').addEventListener('click',function(){
-      openModal('Namen ändern',
-        '<div class="field"><label>Name</label><input id="fName" maxlength="24" value="'+esc(m.name)+'"></div>'+
-        '<div class="field"><label>Notiz</label><input id="fNote" maxlength="30" value="'+esc(m.note||'')+'"></div>',
-        function(){
-          var v=$('fName').value.trim(); if(!v){ $('mErr').textContent='Der Name darf nicht leer sein.'; return; }
-          m.name=v; m.note=$('fNote').value.trim(); saveDB(); closeModal(); renderMembers(); toast('Gespeichert.');
-        });
-    });
-    row.querySelector('[data-a=del]').addEventListener('click',function(){
-      openModal('Person löschen',
-        '<p>„'+esc(m.name)+'“ wirklich aus der Liste entfernen? Alle bisherigen Bewertungen dieser Person werden dabei mit gelöscht.</p>',
-        function(){
-          p.members.splice(i,1);
-          p.rounds.forEach(function(r){ delete r.scores[m.id]; });
-          saveDB(); closeModal(); renderMembers(); toast('Gelöscht.');
-        });
-    });
+      '<div class="acts"></div>';
+    if(!isShared && curUser){
+      var acts=row.querySelector('.acts');
+      var eb=document.createElement('button'); eb.className='btn btn-ghost btn-sm'; eb.textContent='Umbenennen';
+      eb.addEventListener('click',function(){
+        openModal('Namen ändern',
+          '<div class="field"><label>Name</label><input id="fName" maxlength="24" value="'+esc(m.name)+'"></div>'+
+          '<div class="field"><label>Notiz</label><input id="fNote" maxlength="30" value="'+esc(m.note||'')+'"></div>',
+          guard(async function(){
+            var v=$('fName').value.trim(); if(!v){ $('mErr').textContent='Der Name darf nicht leer sein.'; return; }
+            var note=$('fNote').value.trim();
+            await patch('mem?mid=eq.'+m.mid,{name:v,note:note}); m.name=v; m.note=note;
+            closeModal(); redraw(); toast('Gespeichert.');
+          }));
+      });
+      var db2=document.createElement('button'); db2.className='btn btn-danger btn-sm'; db2.textContent='Löschen';
+      db2.addEventListener('click',function(){
+        openModal('Person löschen',
+          '<p>„'+esc(m.name)+'“ wirklich aus der Liste entfernen? Alle bisherigen Bewertungen dieser Person werden dabei mit gelöscht.</p>',
+          guard(async function(){
+            await del('mem?mid=eq.'+m.mid);
+            var key=String(m.mid), touch=[];
+            rounds.forEach(function(r){ if(r.data&&r.data[key]!=null){
+              var d=Object.assign({},r.data); delete d[key];
+              touch.push(patch('rnd?rid=eq.'+r.rid,{data:d}).then(function(){ r.data=d; }));
+            }});
+            await Promise.all(touch);
+            members=members.filter(function(x){return x.mid!==m.mid;});
+            closeModal(); redraw(); toast('Gelöscht.');
+          }));
+      });
+      acts.appendChild(eb); acts.appendChild(db2);
+    }
     box.appendChild(row);
   });
 }
-$('btnAddMember').addEventListener('click',function(){
+$('btnAddMember').addEventListener('click',guard(async function(){
   var n=$('mName').value.trim(), t=$('mNote').value.trim();
   if(!n){ toast('Bitte zuerst einen Namen eingeben.',1); return; }
-  var p=proj();
-  if(p.members.some(function(m){return m.name===n;})){ toast('Dieser Name steht schon in der Liste.',1); return; }
-  p.members.push({id:'m'+(p.seq++),name:n,note:t});
-  saveDB(); $('mName').value=''; $('mNote').value=''; renderMembers(); toast('„'+n+'“ hinzugefügt.');
-});
+  if(members.some(function(m){return m.name===n;})){ toast('Dieser Name steht schon in der Liste.',1); return; }
+  var created=await post('mem',{sid:curSid,name:n,note:t},true);
+  members=members.concat(created);
+  $('mName').value=''; $('mNote').value=''; renderMembers(); renderScore(); toast('„'+n+'“ hinzugefügt.');
+}));
 
 /* SECTION: scoring */
-var editRound=null; /* null = neue Runde; sonst Rundnummer n zum Nachbearbeiten */
+var editRound=null; /* private: rid; shared: always null (no edit) */
 function renderScore(){
-  var p=proj();
   $('scoreErr').textContent='';
   var rows=$('scoreRows'); rows.innerHTML='';
-  if(!p.members.length){
-    rows.innerHTML='<div class="hint" style="padding:18px 0">Die Liste ist noch leer – bitte zuerst im Tab „Liste“ Namen hinzufügen.</div>';
+  if(!members.length){
+    rows.innerHTML='<div class="hint" style="padding:18px 0">Die Liste ist noch leer.</div>';
     $('roundTag').textContent='Keine Namen';
     $('roundHist').innerHTML=''; $('roundCount').textContent='0'; return;
   }
-  var round=(editRound==null?p.rounds.length+1:editRound);
-  var tag=$('roundTag');
-  tag.textContent='Runde '+round+(editRound!=null?' (in Bearbeitung)':'');
-  var preset={};
-  if(editRound!=null){ p.rounds.forEach(function(r){ if(r.n===editRound) preset=r.scores; }); }
+  // In shared mode: each participant can submit multiple times; we track their own rounds via who=nickname
+  var myRounds=isShared?rounds.filter(function(r){return r.who===curNick.name;}):rounds;
+  var maxN=0; rounds.forEach(function(r){ if(r.n>maxN) maxN=r.n; });
+  var myMax=0; myRounds.forEach(function(r){ if(r.n>myMax) myMax=r.n; });
+  var round=isShared?(myMax+1):(editRound!=null?null:maxN+1);
+  var cur=null;
+  if(!isShared && editRound!=null){ rounds.forEach(function(r){ if(r.rid===editRound) cur=r; }); }
+  $('roundTag').textContent=isShared?
+    ('Deine Stimme #'+round+' · anonym'):(
+    'Runde '+(cur?cur.n:maxN+1)+(cur?' (in Bearbeitung)':'')+' · von '+curUser.uid);
   rows.innerHTML='';
-  p.members.forEach(function(m){
-    var v=preset[m.id]; if(v==null) v='';
-    var row=document.createElement('div'); row.className='srow'; row.setAttribute('data-mid',m.id);
+  members.forEach(function(m){
+    var v=cur&&cur.data?cur.data[String(m.mid)]:undefined; if(v==null) v='';
+    var row=document.createElement('div'); row.className='srow'; row.setAttribute('data-mid',m.mid);
     row.innerHTML='<div class="nm"><span>'+esc(m.name)+'</span></div>'+
       '<div><input type="range" min="0" max="10" step="0.5" value="'+(v===''?0:v)+'">'+
       '<div class="scale"><i>0</i><i>5</i><i>10</i></div></div>'+
@@ -403,88 +677,110 @@ function renderScore(){
     });
     rows.appendChild(row);
   });
-  renderRoundHist();
+  renderRoundHist(myRounds,maxN);
 }
-function renderRoundHist(){
-  var p=proj(); $('roundCount').textContent=p.rounds.length;
+function renderRoundHist(myRounds,maxN){
+  $('roundCount').textContent=isShared?myRounds.length:rounds.length;
   var box=$('roundHist'); box.innerHTML='';
-  p.rounds.slice().sort(function(a,b){return b.n-a.n;}).forEach(function(r){
-    var cnt=Object.keys(r.scores).length;
+  var list=isShared?myRounds:rounds;
+  list.slice().sort(function(a,b){return b.n-a.n||b.ts-a.ts;}).forEach(function(r){
+    var cnt=Object.keys(r.data||{}).length;
     var chip=document.createElement('div'); chip.className='hchip';
-    chip.innerHTML='<b>Runde '+r.n+'</b><span>'+fmtTime(r.ts)+' · '+cnt+' Personen</span>';
-    var b=document.createElement('button'); b.className='btn btn-ghost btn-sm'; b.textContent='Bearbeiten';
-    b.addEventListener('click',function(){ editRound=r.n; renderScore(); toast('Runde '+r.n+' wird bearbeitet – Speichern überschreibt sie.'); });
-    chip.appendChild(b); box.appendChild(chip);
+    chip.innerHTML='<b>'+(isShared?'Stimme #'+r.n:'Runde '+r.n)+'</b><span>'+fmtTime(r.ts)+' · '+cnt+' Personen</span>';
+    if(!isShared){
+      var b=document.createElement('button'); b.className='btn btn-ghost btn-sm'; b.textContent='Bearbeiten';
+      b.addEventListener('click',function(){ editRound=r.rid; renderScore(); toast('Runde '+r.n+' wird bearbeitet – Speichern überschreibt sie.'); });
+      chip.appendChild(b);
+    }
+    box.appendChild(chip);
   });
 }
-$('btnClearScores').addEventListener('click',function(){ editRound=null; renderScore(); toast('Neue Runde vorbereitet.'); });
-$('btnSubmitScore').addEventListener('click',function(){
-  var p=proj(), rows=$('scoreRows').children, scores={}, missing=0;
+$('btnClearScores').addEventListener('click',function(){ editRound=null; renderScore(); toast(isShared?'Formular zurückgesetzt.':'Neue Runde vorbereitet.'); });
+$('btnSubmitScore').addEventListener('click',guard(async function(){
+  var rows=$('scoreRows').children, data={}, missing=0, filled=0;
   for(var i=0;i<rows.length;i++){
     var mid=rows[i].getAttribute('data-mid');
     if(!mid) continue;
     var num=rows[i].querySelector('input[type=number]');
     if(num.value===''){ missing++; continue; }
-    scores[mid]=Math.min(10,Math.max(0,snap5(parseFloat(num.value)||0)));
+    data[String(mid)]=Math.min(10,Math.max(0,snap5(parseFloat(num.value)||0)));
+    filled++;
   }
   if(missing){ $('scoreErr').textContent='Es fehlen noch '+missing+' Bewertung(en) – bitte alle ausfüllen.'; return; }
-  if(!Object.keys(scores).length){ $('scoreErr').textContent='Keine bewertbaren Namen in der Liste.'; return; }
+  if(!filled){ $('scoreErr').textContent='Keine bewertbaren Namen in der Liste.'; return; }
   $('scoreErr').textContent='';
-  if(editRound!=null){
-    p.rounds.forEach(function(r){ if(r.n===editRound) r.scores=scores; });
-    toast('Runde '+editRound+' aktualisiert.'); editRound=null;
+  if(isShared){
+    // shared: always insert new round; who = nickname (not shown in stats)
+    var myMax=0; rounds.forEach(function(r){ if(r.who===curNick.name && r.n>myMax) myMax=r.n; });
+    var globalMax=0; rounds.forEach(function(r){ if(r.n>globalMax) globalMax=r.n; });
+    var n=globalMax+1;
+    var created=await post('rnd',{sid:curSid,n:n,ts:Date.now(),who:curNick.name,data:data},true);
+    rounds=rounds.concat(created);
+    toast('Deine anonyme Stimme wurde gespeichert.');
   }else{
-    var n=p.rounds.length+1;
-    p.rounds.push({n:n,ts:Date.now(),scores:scores});
-    toast('Runde '+n+' gespeichert.');
+    if(editRound!=null){
+      await patch('rnd?rid=eq.'+editRound,{data:data,who:curUser.uid});
+      rounds.forEach(function(r){ if(r.rid===editRound){ r.data=data; r.who=curUser.uid; } });
+      toast('Runde aktualisiert.'); editRound=null;
+    }else{
+      var maxN=0; rounds.forEach(function(r){ if(r.n>maxN) maxN=r.n; });
+      var n=maxN+1;
+      var created=await post('rnd',{sid:curSid,n:n,ts:Date.now(),who:curUser.uid,data:data},true);
+      rounds=rounds.concat(created);
+      toast('Runde '+n+' gespeichert (von '+curUser.uid+').');
+    }
   }
-  saveDB(); renderScore();
-});
+  renderScore(); renderStats();
+}));
 
 /* SECTION: statistics */
 function calcStats(){
-  var p=proj(), by={};
-  p.members.forEach(function(m){ by[m.id]={name:m.name,list:[]}; });
-  p.rounds.slice().sort(function(a,b){return a.n-b.n;}).forEach(function(r){
-    for(var mid in r.scores){ if(by[mid]) by[mid].list.push({n:r.n,v:r.scores[mid]}); }
+  var by={};
+  members.forEach(function(m){ by[String(m.mid)]={name:m.name,list:[]}; });
+  rounds.slice().sort(function(a,b){return a.n-b.n||a.ts-b.ts;}).forEach(function(r){
+    for(var k in r.data){ if(by[k]) by[k].list.push({n:r.n,v:r.data[k],by:r.who||''}); }
   });
   var out=[];
-  for(var mid in by){
-    var o=by[mid], vs=o.list.map(function(x){return x.v;});
-    var s={id:mid,name:o.name,count:vs.length,records:o.list};
+  for(var k in by){
+    var o=by[k], vs=o.list.map(function(x){return x.v;});
+    var st={name:o.name,count:vs.length,records:o.list};
     if(vs.length){
       var sum=0; vs.forEach(function(v){sum+=v;});
-      s.avg=snap5(sum/vs.length);
-      s.last=vs[vs.length-1];
-      s.max=Math.max.apply(null,vs);
-      s.min=Math.min.apply(null,vs);
+      st.avg=snap5(sum/vs.length); st.last=vs[vs.length-1];
+      st.max=Math.max.apply(null,vs); st.min=Math.min.apply(null,vs);
     }
-    out.push(s);
+    out.push(st);
   }
   out.sort(function(a,b){ return (b.avg||-1)-(a.avg||-1); });
-  return {rows:out,rounds:p.rounds.length};
+  return {rows:out,rounds:rounds.length};
 }
 function renderStats(){
   var st=calcStats(), body=$('statBody'), cards=$('statCards');
   var withScore=st.rows.filter(function(r){return r.count>0;});
   $('statEmpty').classList.toggle('hidden',withScore.length>0);
-  var p=proj();
   var totalRec=0; st.rows.forEach(function(r){totalRec+=r.count;});
   var overall=0,cnt=0; withScore.forEach(function(r){overall+=r.avg;cnt++;});
   cards.innerHTML=
-    '<div class="stat"><b>'+p.members.length+'</b><i>Personen</i></div>'+
-    '<div class="stat"><b>'+st.rounds+'</b><i>Runden</i></div>'+
+    '<div class="stat"><b>'+members.length+'</b><i>Personen</i></div>'+
+    '<div class="stat"><b>'+st.rounds+'</b><i>'+(isShared?'Stimmen':'Runden')+'</i></div>'+
     '<div class="stat"><b>'+totalRec+'</b><i>Bewertungen</i></div>'+
     '<div class="stat"><b>'+(cnt?fmtScore(snap5(overall/cnt)):'–')+'</b><i>Gesamt-Ø</i></div>';
   body.innerHTML='';
   st.rows.forEach(function(r){
     var tr=document.createElement('tr');
-    var rec=r.records.map(function(x){return 'R'+x.n+': '+fmtScore(x.v);}).join(' · ')||'–';
-    if(r.count){
-      tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td>'+r.count+'</td><td class="best">'+fmtScore(r.avg)+
-        '</td><td>'+fmtScore(r.last)+'</td><td>'+fmtScore(r.max)+'</td><td>'+fmtScore(r.min)+'</td><td class="rec">'+esc(rec)+'</td>';
+    if(isShared){
+      // anonymous: no per-round detail, no "letzte"
+      tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td>'+r.count+'</td><td class="best">'+
+        (r.count?fmtScore(r.avg):'–')+'</td><td>'+(r.count?fmtScore(r.max):'–')+
+        '</td><td>'+(r.count?fmtScore(r.min):'–')+'</td>';
     }else{
-      tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td colspan="5" style="color:var(--muted)">noch nicht bewertet</td><td class="rec">–</td>';
+      var rec=r.records.map(function(x){return 'R'+x.n+' ('+x.by+'): '+fmtScore(x.v);}).join(' · ')||'–';
+      if(r.count){
+        tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td>'+r.count+'</td><td class="best">'+fmtScore(r.avg)+
+          '</td><td>'+fmtScore(r.last)+'</td><td>'+fmtScore(r.max)+'</td><td>'+fmtScore(r.min)+'</td><td class="rec">'+esc(rec)+'</td>';
+      }else{
+        tr.innerHTML='<td class="name">'+esc(r.name)+'</td><td colspan="6" style="color:var(--muted)">noch nicht bewertet</td><td class="rec">–</td>';
+      }
     }
     body.appendChild(tr);
   });
@@ -495,64 +791,113 @@ function xesc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g
 function cell(v,type){ return '<Cell><Data ss:Type="'+(type||'String')+'">'+xesc(v)+'</Data></Cell>'; }
 function rrow(cells){ return '<Row>'+cells.join('')+'</Row>'; }
 $('btnExport').addEventListener('click',function(){
-  var p=proj(), st=calcStats(), a=db.accounts[curId];
+  var st=calcStats();
   var names='<Worksheet ss:Name="Liste"><Table>'+
     rrow([cell('Name'),cell('Notiz')])+
-    p.members.map(function(m){return rrow([cell(m.name),cell(m.note||'')]);}).join('')+
+    members.map(function(m){return rrow([cell(m.name),cell(m.note||'')]);}).join('')+
     '</Table></Worksheet>';
-  var detail='<Worksheet ss:Name="Bewertungen"><Table>'+
-    rrow([cell('Runde'),cell('Zeitpunkt'),cell('Name'),cell('Punkte','Number')])+
-    p.rounds.slice().sort(function(x,y){return x.n-y.n;}).map(function(r){
-      return p.members.map(function(m){
-        return r.scores[m.id]==null?'':rrow([cell('Runde '+r.n),cell(fmtTime(r.ts)),cell(m.name),cell(r.scores[m.id],'Number')]);
-      }).join('');
-    }).join('')+
-    '</Table></Worksheet>';
+  var detail;
+  if(isShared){
+    // anonymized export: no who column
+    detail='<Worksheet ss:Name="Bewertungen"><Table>'+
+      rrow([cell('Runde'),cell('Zeitpunkt'),cell('Name'),cell('Punkte')])+
+      rounds.slice().sort(function(a,b){return a.n-b.n||a.ts-b.ts;}).map(function(r){
+        return members.map(function(m){
+          var v=r.data?r.data[String(m.mid)]:undefined;
+          return v==null?'':rrow([cell('Runde '+r.n),cell(fmtTime(r.ts)),cell(m.name),cell(fmtScore(v))]);
+        }).join('');
+      }).join('')+
+      '</Table></Worksheet>';
+  }else{
+    detail='<Worksheet ss:Name="Bewertungen"><Table>'+
+      rrow([cell('Runde'),cell('Von Konto'),cell('Zeitpunkt'),cell('Name'),cell('Punkte')])+
+      rounds.slice().sort(function(a,b){return a.n-b.n||a.ts-b.ts;}).map(function(r){
+        return members.map(function(m){
+          var v=r.data?r.data[String(m.mid)]:undefined;
+          return v==null?'':rrow([cell('Runde '+r.n),cell(r.who||''),cell(fmtTime(r.ts)),cell(m.name),cell(fmtScore(v))]);
+        }).join('');
+      }).join('')+
+      '</Table></Worksheet>';
+  }
   var sum='<Worksheet ss:Name="Statistik"><Table>'+
-    rrow([cell('Name'),cell('Anzahl'),cell('Durchschnitt'),cell('Letzte'),cell('Max'),cell('Min'),cell('Alle Runden')])+
+    rrow(isShared?[cell('Name'),cell('Anzahl'),cell('Durchschnitt'),cell('Max'),cell('Min')]:[cell('Name'),cell('Anzahl'),cell('Durchschnitt'),cell('Letzte'),cell('Max'),cell('Min'),cell('Alle Runden')])+
     st.rows.map(function(r){
-      var rec=r.records.map(function(x){return 'Runde '+x.n+': '+fmtScore(x.v);}).join(' · ');
-      return rrow([cell(r.name),cell(r.count,'Number'),
-        cell(r.count?fmtScore(r.avg):''),cell(r.count?fmtScore(r.last):''),
-        cell(r.count?fmtScore(r.max):''),cell(r.count?fmtScore(r.min):''),
-        cell(rec)]);
+      if(isShared){
+        return rrow([cell(r.name),cell(r.count,'Number'),
+          cell(r.count?fmtScore(r.avg):''),cell(r.count?fmtScore(r.max):''),cell(r.count?fmtScore(r.min):'')]);
+      }else{
+        var rec=r.records.map(function(x){return 'Runde '+x.n+' ('+x.by+'): '+fmtScore(x.v);}).join(' · ');
+        return rrow([cell(r.name),cell(r.count,'Number'),
+          cell(r.count?fmtScore(r.avg):''),cell(r.count?fmtScore(r.last):''),
+          cell(r.count?fmtScore(r.max):''),cell(r.count?fmtScore(r.min):''),
+          cell(rec)]);
+      }
     }).join('')+
     '</Table></Worksheet>';
+  var accts='';
+  if(!isShared){
+    accts='<Worksheet ss:Name="Konten"><Table>'+
+      rrow([cell('Kontoname'),cell('Rolle')])+
+      users.map(function(a){return rrow([cell(a.uid),cell(a.owner?'Gründer':'Mitglied')]);}).join('')+
+      '</Table></Worksheet>';
+  }
   var xml='<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n'+
     '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'+
-    sum+detail+names+'</Workbook>';
+    sum+detail+names+accts+'</Workbook>';
   var blob=new Blob(['\uFEFF'+xml],{type:'application/vnd.ms-excel;charset=utf-8'});
   var d=new Date(); function z(n){return (n<10?'0':'')+n;}
   var link=document.createElement('a');
   link.href=URL.createObjectURL(blob);
-  link.download='Bewertungsergebnisse_'+a.name+'_'+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'.xls';
+  link.download='Bewertungsergebnisse_'+(systems.filter(function(s){return s.sid===curSid;})[0]||{name:curSid}).name+'_'+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'.xls';
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
   setTimeout(function(){URL.revokeObjectURL(link.href);},4000);
-  toast('Excel wird heruntergeladen – mit Statistik, Bewertungen und Liste.');
+  toast('Excel wird heruntergeladen.');
 });
 
 /* SECTION: project management */
 $('btnRename').addEventListener('click',function(){
+  var s=systems.filter(function(x){return x.sid===curSid;})[0]||{name:''};
   openModal('System umbenennen',
-    '<div class="field"><label>Neuer Name</label><input id="fName" maxlength="24" value="'+esc(db.accounts[curId].name)+'"></div>',
-    function(){
+    '<div class="field"><label>Neuer Name</label><input id="fName" maxlength="24" value="'+esc(s.name)+'"></div>',
+    guard(async function(){
       var v=$('fName').value.trim(); if(!v){ $('mErr').textContent='Der Name darf nicht leer sein.'; return; }
-      db.accounts[curId].name=v; saveDB(); closeModal(); syncChip(); toast('Umbenannt in „'+v+'“');
-    });
+      await patch('sys?sid=eq.'+encodeURIComponent(curSid),{name:v}); s.name=v;
+      closeModal(); syncChip(); toast('Umbenannt in „'+v+'“');
+    }));
 });
 $('btnDelProj').addEventListener('click',function(){
+  var s=systems.filter(function(x){return x.sid===curSid;})[0]||{name:curSid};
   openModal('System löschen',
-    '<p>Alle Namen und Bewertungen von „'+esc(db.accounts[curId].name)+'“ werden dauerhaft gelöscht.</p>'+
-    '<div class="field" style="margin-top:12px"><label>Zur Bestätigung das Passwort eingeben</label><input id="fPwd" type="password"></div>',
-    function(){
-      if($('fPwd').value!==db.accounts[curId].pwd){ $('mErr').textContent='Passwort ist falsch.'; return; }
-      delete db.accounts[curId]; delete db.projects[curId];
-      saveDB(); closeModal(); leave(); toast('System gelöscht.');
-    });
+    '<p>Alle Daten von „'+esc(s.name)+'“ werden dauerhaft aus der Cloud gelöscht.</p>'+
+    '<div class="field" style="margin-top:12px"><label>Passwort deines Kontos eingeben</label><input id="fPwd" type="password"></div>',
+    guard(async function(){
+      var h=await hashPw($('fPwd').value);
+      if(!curUser||curUser.pw!==h){ $('mErr').textContent='Passwort ist falsch.'; return; }
+      var e=encodeURIComponent(curSid);
+      await del('rnd?sid=eq.'+e); await del('mem?sid=eq.'+e); await del('nick?sid=eq.'+e); await del('usr?sid=eq.'+e); await del('sys?sid=eq.'+e);
+      systems=systems.filter(function(x){return x.sid!==curSid;});
+      closeModal(); leave(); toast('System gelöscht.');
+    }));
 });
 
 /* SECTION: boot */
-if(curId){ enter(curId); } else { renderHome(); }
+(async function(){
+  try{
+    await loadSystems();
+    var sess=null; try{ sess=JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){}
+    if(sess&&sess.sid){
+      var s=systems.filter(function(x){return x.sid===sess.sid;})[0];
+      if(s){
+        try{
+          if(s.shared){ await enterShared(sess.sid,false); }
+          else if(sess.uid&&sess.pw){ await enterPrivate(sess.sid,sess.uid,sess.pw); }
+        }catch(e){ localStorage.removeItem(SESSION_KEY); }
+      }
+    }
+  }catch(e){
+    $('projGrid').innerHTML='<div class="emptybox"><p>Cloud nicht erreichbar.</p><p class="hint">'+esc(e.message)+'</p></div>';
+  }
+})();
 </script>
 </body>
 </html>
